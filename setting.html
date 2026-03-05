@@ -283,50 +283,44 @@
         });
 
         // Сбор данных и отправка в бота
-        tg.onEvent('mainButtonClicked', function() {
-            const now = new Date();
-            const offset = -now.getTimezoneOffset(); // Смещение в минутах
-            const isAstig = astigToggle.checked;
-
-            const data = {
-                user_local_time: now.toISOString(),
-                utc_offset: offset,
+       tg.onEvent('mainButtonClicked', function() {
+            try {
+                const isAstig = document.getElementById('astigmatism-mode').checked;
+        
+                const data = {
+                    utc_offset: -new Date().getTimezoneOffset(),
+                    brand: document.getElementById('lens-brand').value || "Не указан",
+                    duration: parseInt(document.getElementById('duration').value) || 14,
+                    days_left: parseInt(document.getElementById('days-left').value) || 14,
+                    bc: parseFloat(document.getElementById('bc-all').value) || 8.6,
+                    
+                    left: { 
+                        pwr: parseFloat(document.getElementById('pwr-left').value) || 0, 
+                        stock: parseInt(document.getElementById('stock-left').value) || 0,
+                        cyl: isAstig ? (parseFloat(document.getElementById('cyl-left').value) || 0) : null,
+                        axis: isAstig ? (parseInt(document.getElementById('axis-left').value) || 0) : null
+                    },
+                    right: { 
+                        pwr: parseFloat(document.getElementById('pwr-right').value) || 0, 
+                        stock: parseInt(document.getElementById('stock-right').value) || 0,
+                        cyl: isAstig ? (parseFloat(document.getElementById('cyl-right').value) || 0) : null,
+                        axis: isAstig ? (parseInt(document.getElementById('axis-right').value) || 0) : null
+                    },
+                    
+                    remind_before: parseInt(document.getElementById('remind-before').value) || 0,
+                    notify_time: document.getElementById('notify-time').value || "10:00",
+                    stock_threshold: parseInt(document.getElementById('stock-threshold').value) || 2
+                };
                 
-                brand: document.getElementById('lens-brand').value,
-                duration: parseInt(document.getElementById('duration').value),
-                days_left: parseInt(document.getElementById('days-left').value),
-                workday_notify: document.getElementById('workday-time').value,
-                sleep_notify: document.getElementById('sleep-time').value,
-                
-                continuous: document.getElementById('continuous-mode').checked,
-                astigmatism: isAstig,
-                bc: parseFloat(document.getElementById('bc-all').value),
-                
-                left: { 
-                    pwr: parseFloat(document.getElementById('pwr-left').value), 
-                    stock: parseInt(document.getElementById('stock-left').value),
-                    cyl: isAstig ? parseFloat(document.getElementById('cyl-left').value) : null,
-                    axis: isAstig ? parseInt(document.getElementById('axis-left').value) : null
-                },
-                right: { 
-                    pwr: parseFloat(document.getElementById('pwr-right').value), 
-                    stock: parseInt(document.getElementById('stock-right').value),
-                    cyl: isAstig ? parseFloat(document.getElementById('cyl-right').value) : null,
-                    axis: isAstig ? parseInt(document.getElementById('axis-right').value) : null
-                },
-                
-                remind_before: parseInt(document.getElementById('remind-before').value),
-                notify_time: document.getElementById('notify-time').value,
-                stock_threshold: parseInt(document.getElementById('stock-threshold').value),
-                
-                solution_opened: solActive
-            };
-            
-            tg.sendData(JSON.stringify(data));
-            tg.close();
+                tg.sendData(JSON.stringify(data));
+                tg.close();
+            } catch (e) {
+                alert("Ошибка при сохранении: " + e.message);
+            }
         });
     </script>
 </body>
 
 </html>
+
 

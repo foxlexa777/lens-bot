@@ -210,14 +210,26 @@
             document.getElementById('sol-fill').style.width = '100%';
         };
 
-        // Скрипт для чтения данных из URL и обновления колец
-    const params = new URLSearchParams(window.location.search);
-    const l = params.get('l') || 14;
-    const r = params.get('r') || 14;
+        // Вычисляем процент заполнения (допустим, максимум 14 дней)
+        const maxDays = 14; 
+        const rings = document.querySelectorAll('.ring-progress'); // Найди класс самого круга
+        
+        if(rings.length >= 2) {
+            // Формула для stroke-dashoffset (если используешь её в CSS)
+            const lOffset = 283 - (283 * (l / maxDays)); 
+            const rOffset = 283 - (283 * (r / maxDays));
+            rings[0].style.strokeDashoffset = lOffset;
+            rings[1].style.strokeDashoffset = rOffset;
+        }
 
-    // Обновляем текст внутри колец (найди элементы с классом ring-text)
-    const ringTexts = document.querySelectorAll('.ring-text');
-    if(ringTexts.length >= 2) {
+        // Скрипт для чтения данных из URL и обновления колец
+        const params = new URLSearchParams(window.location.search);
+        const l = params.get('l') || 14;
+        const r = params.get('r') || 14;
+    
+        // Обновляем текст внутри колец (найди элементы с классом ring-text)
+        const ringTexts = document.querySelectorAll('.ring-text');
+        if(ringTexts.length >= 2) {
         ringTexts[0].innerText = l;
         ringTexts[1].innerText = r;
     }
@@ -225,3 +237,4 @@
 </body>
 
 </html>
+

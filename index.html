@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lenses Pro v16</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #000000;
+            --card-bg: #1c1c1e;
+            --border: #2c2c2e;
+            --text-color: #ffffff;
+            --hint-color: #8e8e93;
+            --accent-blue: #0A84FF;
+            --accent-red: #FF453A;
+            --accent-orange: #FF9F0A;
+        }
+
+        body {
+            background-color: var(--bg-color); color: var(--text-color);
+            font-family: -apple-system, system-ui, sans-serif;
+            margin: 0; padding: 12px 16px; -webkit-user-select: none;
+        }
+
+        /* Шапка */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .header h1 { font-size: 22px; margin: 0; }
+        .nav-icons { display: flex; gap: 8px; }
+        .nav-btn { background: var(--card-bg); border: none; border-radius: 10px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; }
+
+        .brand-sub { font-size: 13px; color: var(--accent-blue); font-weight: 500; margin-bottom: 16px; display: block; }
+
+        /* Верхний статус */
+        .top-status { text-align: center; font-size: 14px; color: var(--hint-color); margin-bottom: 16px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 12px; }
+        .top-status b { color: var(--accent-blue); }
+
+        /* Кольца */
+        .rings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        .eye-card { background: var(--card-bg); border-radius: 20px; padding: 14px 10px; position: relative; transition: 0.3s; }
+        .eye-card.inactive { opacity: 0.25; }
+        
+        .eye-label { font-size: 9px; color: var(--hint-color); text-transform: uppercase; font-weight: 700; text-align: center; margin-bottom: 10px; letter-spacing: 1px; }
+        .eye-body { display: flex; align-items: center; justify-content: space-between; }
+        
+        .specs { display: flex; flex-direction: column; gap: 2px; }
+        .specs div { font-size: 9px; color: var(--hint-color); }
+        .specs b { color: #fff; font-size: 10px; }
+
+        .ring { position: relative; width: 70px; height: 70px; }
+        .ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+        .ring circle { fill: transparent; stroke-width: 8; stroke-linecap: round; }
+        .ring .bg { stroke: var(--border); }
+        .ring .bar { stroke: var(--accent-blue); transition: 0.6s; }
+        .ring-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; }
+
+        /* Кнопки замены */
+        .replace-section { margin-bottom: 20px; }
+        .replace-row { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 8px; margin-bottom: 6px; }
+        .btn-replace { background: var(--card-bg); border: 1px solid var(--border); color: white; padding: 10px 2px; border-radius: 12px; font-size: 10px; font-weight: 600; }
+        .btn-replace.both { background: var(--accent-blue); border-color: var(--accent-blue); }
+        .replace-hint { font-size: 9px; color: var(--hint-color); text-align: center; display: block; }
+
+        /* Управление */
+        .btn-main { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--card-bg); color: white; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+        .btn-main.active { background: var(--accent-blue); border-color: var(--accent-blue); }
+        .btn-note { font-size: 10px; color: var(--hint-color); text-align: center; display: block; margin-bottom: 12px; }
+
+        .btn-glasses { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: transparent; color: var(--hint-color); font-size: 13px; font-weight: 600; margin-bottom: 20px; }
+        .btn-glasses.active { border-color: var(--accent-orange); color: var(--accent-orange); }
+
+        /* Блок раствора */
+        .card-sol { background: var(--card-bg); border-radius: 20px; padding: 16px; margin-bottom: 16px; }
+        .sol-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .sol-btn { background: var(--accent-blue); border: none; color: white; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+        .progress-bg { background: var(--border); height: 6px; border-radius: 4px; overflow: hidden; }
+        .progress-fill { background: var(--accent-blue); height: 100%; width: 50%; }
+
+        /* Склад */
+        .stock-card { background: var(--card-bg); border-radius: 20px; padding: 16px; margin-bottom: 12px; }
+        .stock-main { display: flex; align-items: center; margin-bottom: 10px; }
+        .stock-seg { flex: 1; text-align: center; }
+        .stock-div { width: 1px; height: 30px; background: var(--border); }
+        .stock-l { font-size: 9px; color: var(--hint-color); text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .stock-ctrl { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .stock-v { font-size: 17px; font-weight: 700; min-width: 35px; }
+        .s-btn { background: var(--border); border: none; color: var(--accent-blue); width: 22px; height: 22px; border-radius: 6px; font-weight: 800; }
+        .buy-link { display: block; text-align: center; color: var(--accent-blue); font-size: 13px; font-weight: 600; text-decoration: none; }
+
+        .tip-box { text-align: center; color: var(--hint-color); font-size: 10px; margin-top: 16px; opacity: 0.6; padding: 0 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Мои линзы</h1>
+        <div class="nav-icons">
+            <button class="nav-btn">🕒</button>
+            <button class="nav-btn">⚙️</button>
+        </div>
+    </div>
+    <span class="brand-sub">Acuvue Oasys • 14 дней</span>
+
+    <div class="top-status">
+        Сегодня <b>12-й день</b> носки • Дневной режим
+    </div>
+
+    <div class="rings-grid">
+        <div class="eye-card" id="card-l">
+            <div class="eye-label">Левый (OS)</div>
+            <div class="eye-body">
+                <div class="specs">
+                    <div>PWR <b>-2.50</b></div>
+                    <div>BC <b>8.6</b></div>
+                    <div>CYL <b>-0.75</b></div>
+                    <div>AX <b>180°</b></div>
+                </div>
+                <div class="ring">
+                    <svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="45"/><circle class="bar" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="60"/></svg>
+                    <div class="ring-text">11</div>
+                </div>
+            </div>
+        </div>
+        <div class="eye-card" id="card-r">
+            <div class="eye-label">Правый (OD)</div>
+            <div class="eye-body">
+                <div class="specs">
+                    <div>PWR <b>-2.25</b></div>
+                    <div>BC <b>8.6</b></div>
+                    <div>CYL <b>-1.25</b></div>
+                    <div>AX <b>170°</b></div>
+                </div>
+                <div class="ring">
+                    <svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="45"/><circle class="bar" id="bar-r" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="180" style="stroke:var(--accent-red)"/></svg>
+                    <div class="ring-text" style="color:var(--accent-red)">4</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="replace-section">
+        <div class="replace-row">
+            <button class="btn-replace">ЛЕВУЮ</button>
+            <button class="btn-replace both">ОБЕ ЛИНЗЫ</button>
+            <button class="btn-replace">ПРАВУЮ</button>
+        </div>
+        <span class="replace-hint">Нажмите на кнопку выше, чтобы надеть новые линзы</span>
+    </div>
+
+    <div id="action-area">
+        <button class="btn-main" id="wear-btn">👁️ НАДЕТЬ ЛИНЗЫ</button>
+        <span class="btn-note">Нажмите, чтобы получить напоминание снять линзы</span>
+    </div>
+
+    <button class="btn-glasses" id="gl-btn">👓 Сегодня я в очках</button>
+
+    <div class="card-sol">
+        <div class="sol-row">
+            <div style="font-size:14px; font-weight:600;">💧 Срок раствора <span>(45/90 дн.)</span></div>
+            <button class="sol-btn" id="sol-reset">ОБНОВИЛ</button>
+        </div>
+        <div class="progress-bg"><div id="sol-fill" class="progress-fill"></div></div>
+    </div>
+
+    <div class="stock-card">
+        <div class="stock-main">
+            <div class="stock-seg">
+                <span class="stock-l">Запас L</span>
+                <div class="stock-ctrl">
+                    <button class="s-btn">−</button>
+                    <span class="stock-v">4 шт</span>
+                    <button class="s-btn">+</button>
+                </div>
+            </div>
+            <div class="stock-div"></div>
+            <div class="stock-seg">
+                <span class="stock-l">Запас R</span>
+                <div class="stock-ctrl">
+                    <button class="s-btn">−</button>
+                    <span class="stock-v" style="color:var(--accent-red)">1 шт</span>
+                    <button class="s-btn">+</button>
+                </div>
+            </div>
+        </div>
+        <a href="#" class="buy-link">🛒 Купить линзы</a>
+    </div>
+
+    <div class="tip-box">
+        💡 Помните: Каждые 15 минут делайте перерыв, глядя вдаль.
+    </div>
+
+    <script>
+        const wearBtn = document.getElementById('wear-btn');
+        const glBtn = document.getElementById('gl-btn');
+        const actionArea = document.getElementById('action-area');
+        
+        wearBtn.onclick = () => {
+            wearBtn.classList.toggle('active');
+            wearBtn.innerHTML = wearBtn.classList.contains('active') ? '✅ ЛИНЗЫ НАДЕТЫ' : '👁️ НАДЕТЬ ЛИНЗЫ';
+        };
+
+        glBtn.onclick = () => {
+            const isActive = glBtn.classList.toggle('active');
+            document.getElementById('card-l').classList.toggle('inactive');
+            document.getElementById('card-r').classList.toggle('inactive');
+            actionArea.style.display = isActive ? 'none' : 'block';
+        };
+
+        document.getElementById('sol-reset').onclick = function() {
+            document.getElementById('sol-fill').style.width = '100%';
+        };
+    </script>
+</body>
+</html>

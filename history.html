@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+        :root {
+            --bg-color: #000;
+            --card-bg: #1c1c1e;
+            --text: #fff;
+            --hint: #8e8e93;
+            --blue: #0A84FF;
+            --border: #2c2c2e;
+        }
+        body { background: var(--bg-color); color: var(--text); font-family: -apple-system, sans-serif; padding: 16px; margin: 0; }
+        
+        /* Разделитель даты */
+        .date-divider {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--hint);
+            margin: 24px 0 12px 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .date-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .history-item { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 12px; 
+            margin-bottom: 8px; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+        }
+        
+        .time { 
+            font-size: 11px; 
+            color: var(--hint); 
+            min-width: 40px; 
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .icon { 
+            font-size: 18px; 
+            width: 36px; height: 36px; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 10px; 
+            display: flex; align-items: center; justify-content: center; 
+        }
+
+        .info { flex: 1; }
+        .title { font-size: 14px; font-weight: 600; }
+        .desc { font-size: 12px; color: var(--hint); margin-top: 1px; }
+        
+        /* Кнопка отмены (маленькая и незаметная) */
+        .undo-btn {
+            background: none; border: none; color: #ff453a; font-size: 11px; padding: 4px; opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <h2 style="margin-left: 4px;">История</h2>
+
+    <div class="date-divider">СЕГОДНЯ, 5 МАРТА</div>
+    
+    <div class="history-item">
+        <div class="time">09:15</div>
+        <div class="icon">👁️</div>
+        <div class="info">
+            <div class="title">Надел линзы</div>
+            <div class="desc">Уведомление в 22:00</div>
+        </div>
+        <button class="undo-btn">Отмена</button>
+    </div>
+
+    <div class="date-divider">ВЧЕРА, 4 МАРТА</div>
+
+    <div class="history-item">
+        <div class="time">22:30</div>
+        <div class="icon">👓</div>
+        <div class="info">
+            <div class="title">Снял линзы</div>
+            <div class="desc">Носил 13ч 15мин</div>
+        </div>
+    </div>
+
+    <div class="history-item">
+        <div class="time">10:00</div>
+        <div class="icon">🔄</div>
+        <div class="info">
+            <div class="title">Замена (Обе)</div>
+            <div class="desc">Осталось 14 дней</div>
+        </div>
+        <button class="undo-btn">Отмена</button>
+    </div>
+
+    <div class="date-divider">2 МАРТА</div>
+
+    <div class="history-item">
+        <div class="time">14:20</div>
+        <div class="icon">📦</div>
+        <div class="info">
+            <div class="title">Склад +6 шт</div>
+            <div class="desc">Правый глаз (OD)</div>
+        </div>
+    </div>
+
+</body>
+</html>

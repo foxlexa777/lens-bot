@@ -209,6 +209,19 @@
         document.getElementById('sol-reset').onclick = function() {
             document.getElementById('sol-fill').style.width = '100%';
         };
+
+        // Скрипт для чтения данных из URL и обновления колец
+    const params = new URLSearchParams(window.location.search);
+    const l = params.get('l') || 14;
+    const r = params.get('r') || 14;
+
+    // Обновляем текст внутри колец (найди элементы с классом ring-text)
+    const ringTexts = document.querySelectorAll('.ring-text');
+    if(ringTexts.length >= 2) {
+        ringTexts[0].innerText = l;
+        ringTexts[1].innerText = r;
+    }
     </script>
 </body>
+
 </html>

@@ -38,11 +38,11 @@
 
         /* Кольца */
         .rings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .eye-card { background: var(--card-bg); border-radius: 20px; padding: 14px 10px; position: relative; transition: opacity 0.3s; }
+        .eye-card { background: var(--card-bg); border-radius: 20px; padding: 10px 10px 16px 10px; position: relative; transition: opacity 0.3s; }
         .eye-card.inactive { opacity: 0.25; }
 
-        .eye-label { font-size: 9px; color: var(--hint-color); text-transform: uppercase; font-weight: 700; text-align: center; margin-bottom: 10px; letter-spacing: 1px; }
-        .eye-body { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+        .eye-label { font-size: 9px; color: var(--hint-color); text-transform: uppercase; font-weight: 700; text-align: center; margin-bottom: 6px; letter-spacing: 1px; }
+        .eye-body { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding-bottom: 2px; }
 
         .specs { display: flex; flex-direction: column; gap: 2px; }
         .specs div { font-size: 9px; color: var(--hint-color); }
@@ -66,6 +66,7 @@
         .btn-main { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--card-bg); color: white; font-size: 15px; font-weight: 700; margin-bottom: 4px; cursor: pointer; }
         .btn-main.active { background: var(--accent-blue); border-color: var(--accent-blue); }
         .btn-note { font-size: 10px; color: var(--hint-color); text-align: center; display: block; margin-bottom: 12px; }
+        .worn-timer { text-align: center; font-size: 12px; color: var(--accent-blue); font-weight: 600; margin-bottom: 8px; display: none; letter-spacing: 0.3px; }
 
         .btn-glasses { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: transparent; color: var(--hint-color); font-size: 13px; font-weight: 600; margin-bottom: 20px; cursor: pointer; }
         .btn-glasses.active { border-color: var(--accent-orange); color: var(--accent-orange); }
@@ -192,6 +193,7 @@
     <div id="action-area">
         <button class="btn-main" id="wear-btn">👁️ НАДЕТЬ ЛИНЗЫ</button>
         <span class="btn-note">Нажмите, чтобы получить напоминание снять линзы</span>
+        <div class="worn-timer" id="worn-timer">⏱ Надеты: 0:00</div>
     </div>
 
     <button class="btn-glasses" id="gl-btn">👓 Сегодня я в очках</button>
@@ -202,6 +204,7 @@
             <button class="sol-btn" id="sol-reset">ОБНОВИЛ</button>
         </div>
         <div class="progress-bg"><div id="sol-fill" class="progress-fill"></div></div>
+        <div id="sol-date" style="font-size:11px;color:var(--hint-color);margin-top:7px;display:none">Открыт: —</div>
     </div>
 
     <div class="stock-card">
@@ -241,36 +244,43 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // ⚠️ ЗАМЕНИ НА АКТУАЛЬНЫЙ URL ОТ LOCALTUNNEL
-        const API_URL = "https://slick-clouds-return.loca.lt/";
+        const API_URL  = "https://slick-clouds-return.loca.lt";
         const URL_BASE = "https://foxlexa777.github.io/lens-bot/";
-
-        let stockL = 0, stockR = 0, threshold = 2, duration = 14;
 
         // ── user_id ──
         function getUserId() {
-            const uid1 = tg.initDataUnsafe?.user?.id;
-            if (uid1) return uid1;
+            const u1 = tg.initDataUnsafe?.user?.id;
+            if (u1) return u1;
             try {
                 const p = new URLSearchParams(tg.initData);
                 const u = p.get('user');
                 if (u) { const o = JSON.parse(decodeURIComponent(u)); if (o?.id) return o.id; }
             } catch(e) {}
             try {
-                const uid3 = parseInt(new URLSearchParams(window.location.search).get('uid'));
-                if (uid3 > 0) return uid3;
+                const u3 = parseInt(new URLSearchParams(window.location.search).get('uid'));
+                if (u3 > 0) return u3;
             } catch(e) {}
             return 0;
         }
         const uid = getUserId();
 
         // ── Навигация ──
-        document.getElementById('btn-settings').onclick = () => {
+        document.getElementById('btn-settings').onclick = () =>
             window.location.href = `${URL_BASE}setting.html?uid=${uid}`;
-        };
-        document.getElementById('btn-history').onclick = () => {
+        document.getElementById('btn-history').onclick  = () =>
             window.location.href = `${URL_BASE}history.html?uid=${uid}`;
-        };
+
+        // ── API-хелпер (fire-and-forget) ──
+        function api(path, method = 'POST', body = null) {
+            const opts = { method, headers: { 'bypass-tunnel-reminder': 'true', 'Content-Type': 'application/json' } };
+            if (body) opts.body = JSON.stringify(body);
+            return fetch(`${API_URL}${path}`, opts).then(r => r.json()).catch(() => null);
+        }
+
+        // ── Состояние ──
+        let stockL = 0, stockR = 0, threshold = 2, duration = 14;
+        let lensesWorn = false, glassesOn = false;
+        let timerInterval = null;
 
         // ── Форматирование ──
         function fmt(val) {
@@ -278,49 +288,30 @@
             return (val >= 0 ? '+' : '') + parseFloat(val).toFixed(2);
         }
         function ringColor(pct) {
-            if (pct > 0.5) return 'var(--accent-blue)';
+            if (pct > 0.5)  return 'var(--accent-blue)';
             if (pct > 0.25) return 'var(--accent-orange)';
             return 'var(--accent-red)';
         }
 
         // ── Кольцо ──
-        function setRing(barId, textId, days, dur) {
-            const pct = Math.max(0, Math.min(1, days / dur));
+        function setRing(side, days, dur) {
+            const pct    = Math.max(0, Math.min(1, days / dur));
             const offset = 283 - 283 * pct;
             const color  = ringColor(pct);
             setTimeout(() => {
-                const bar = document.getElementById(barId);
+                const bar = document.getElementById('bar-' + side);
                 bar.style.strokeDashoffset = offset;
                 bar.style.stroke = color;
             }, 80);
-            // textId = 'ring-text-l' / 'ring-text-r'
-            const side   = textId.endsWith('-l') ? 'l' : 'r';
-            const numEl  = document.getElementById('ring-num-'  + side);
-            const subEl  = document.getElementById('ring-sub-' + side);
-            const textEl = document.getElementById(textId);
+            const numEl = document.getElementById('ring-num-'  + side);
+            const subEl = document.getElementById('ring-sub-' + side);
+            const txtEl = document.getElementById('ring-text-' + side);
             if (numEl) { numEl.textContent = days; numEl.style.color = color; }
-            else { textEl.textContent = days; }
-            if (subEl) subEl.textContent = days > 0 ? 'дн.' : '';
-            textEl.style.color = color;
-        }
-
-        // ── Убрать скелетоны ──
-        function removeSkeletons() {
-            ['sk-l','sk-r'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.remove();
-            });
-            // Убираем скелетоны из brand-sub и top-status
-            document.getElementById('brand-sub').querySelectorAll('.sk-line').forEach(e => e.remove());
-            document.getElementById('top-status').querySelectorAll('.sk-line').forEach(e => e.remove());
+            if (subEl)   subEl.textContent = days > 0 ? 'дн.' : '';
+            if (txtEl)   txtEl.style.color = color;
         }
 
         // ── Запас ──
-        function changeStock(side, delta) {
-            if (side === 'l') stockL = Math.max(0, stockL + delta);
-            else              stockR = Math.max(0, stockR + delta);
-            updateStockDisplay();
-        }
         function updateStockDisplay() {
             const elL = document.getElementById('stock-l-val');
             const elR = document.getElementById('stock-r-val');
@@ -329,14 +320,103 @@
             elL.style.color = stockL <= threshold ? 'var(--accent-red)' : '';
             elR.style.color = stockR <= threshold ? 'var(--accent-red)' : '';
         }
+        function changeStock(side, delta) {
+            if (side === 'l') stockL = Math.max(0, stockL + delta);
+            else              stockR = Math.max(0, stockR + delta);
+            updateStockDisplay();
+            api(`/api/stock/${uid}/${side === 'l' ? 'left' : 'right'}/${delta}`);
+        }
+
+        // ── Скелетоны ──
+        function removeSkeletons() {
+            ['sk-l', 'sk-r'].forEach(id => { const e = document.getElementById(id); if (e) e.remove(); });
+            document.getElementById('brand-sub').querySelectorAll('.sk-line').forEach(e => e.remove());
+            document.getElementById('top-status').querySelectorAll('.sk-line').forEach(e => e.remove());
+        }
+
+        // ── Таймер ──
+        function startTimer(fromTime) {
+            const el = document.getElementById('worn-timer');
+            if (!el) return;
+            el.style.display = 'block';
+            function tick() {
+                const s = Math.floor((Date.now() - fromTime) / 1000);
+                const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+                el.textContent = `⏱ Надеты: ${h > 0 ? h + ':' : ''}${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+            }
+            tick(); timerInterval = setInterval(tick, 1000);
+        }
+        function stopTimer() {
+            const el = document.getElementById('worn-timer');
+            if (el) el.style.display = 'none';
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        }
+
+        // ── Кнопка Надеть ──
+        document.getElementById('wear-btn').onclick = function () {
+            lensesWorn = !lensesWorn;
+            if (lensesWorn) {
+                this.classList.add('active');
+                this.innerHTML = '✅ ЛИНЗЫ НАДЕТЫ';
+                startTimer(Date.now());
+                api(`/api/wear/${uid}`);
+            } else {
+                this.classList.remove('active');
+                this.innerHTML = '👁️ НАДЕТЬ ЛИНЗЫ';
+                stopTimer();
+                api(`/api/remove/${uid}`);
+            }
+        };
+
+        // ── Очки ──
+        document.getElementById('gl-btn').onclick = function () {
+            glassesOn = !glassesOn;
+            this.classList.toggle('active', glassesOn);
+            document.getElementById('card-l').classList.toggle('inactive', glassesOn);
+            document.getElementById('card-r').classList.toggle('inactive', glassesOn);
+            document.getElementById('action-area').style.display = glassesOn ? 'none' : 'block';
+            // Если включили очки — снимаем линзы
+            if (glassesOn && lensesWorn) {
+                lensesWorn = false;
+                const btn = document.getElementById('wear-btn');
+                btn.classList.remove('active');
+                btn.innerHTML = '👁️ НАДЕТЬ ЛИНЗЫ';
+                stopTimer();
+            }
+            api(`/api/glasses/${uid}`, 'POST', { active: glassesOn });
+        };
+
+        // ── Замена линз ──
+        function replaceLens(eye) {
+            if (eye === 'left'  || eye === 'both') { setRing('l', duration, duration); stockL = Math.max(0, stockL - 1); }
+            if (eye === 'right' || eye === 'both') { setRing('r', duration, duration); stockR = Math.max(0, stockR - 1); }
+            updateStockDisplay();
+            const ids = { left: 'btn-replace-l', right: 'btn-replace-r', both: 'btn-replace-both' };
+            const btn = document.getElementById(ids[eye]);
+            if (btn) { btn.style.background = 'var(--accent-green)'; setTimeout(() => btn.style.background = '', 700); }
+            api(`/api/replace/${uid}/${eye}`);
+        }
+        document.getElementById('btn-replace-l').onclick    = () => replaceLens('left');
+        document.getElementById('btn-replace-r').onclick    = () => replaceLens('right');
+        document.getElementById('btn-replace-both').onclick = () => replaceLens('both');
+
+        // ── Раствор ──
+        document.getElementById('sol-reset').onclick = function () {
+            document.getElementById('sol-fill').style.width = '100%';
+            const pct = 100;
+            // «0 дней использования из 90» = только что открыли
+            document.getElementById('sol-label').textContent = '(0/90 дн.)';
+            const dateEl = document.getElementById('sol-date');
+            if (dateEl) {
+                dateEl.textContent = 'Открыт: ' + new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                dateEl.style.display = 'block';
+            }
+            api(`/api/solution/reset/${uid}`);
+        };
 
         // ── Загрузка ──
         async function loadData() {
-            if (!uid) {
-                removeSkeletons();
-                document.getElementById('empty-state').style.display = 'flex';
-                return;
-            }
+            if (!uid) { removeSkeletons(); document.getElementById('empty-state').style.display = 'flex'; return; }
             try {
                 const resp = await fetch(`${API_URL}/api/get_settings/${uid}`, {
                     headers: { 'bypass-tunnel-reminder': 'true' }
@@ -344,10 +424,7 @@
                 const d = await resp.json();
                 removeSkeletons();
 
-                if (d.status !== 'ok') {
-                    document.getElementById('empty-state').style.display = 'flex';
-                    return;
-                }
+                if (d.status !== 'ok') { document.getElementById('empty-state').style.display = 'flex'; return; }
 
                 duration  = d.left?.duration ?? d.right?.duration ?? 14;
                 threshold = d.stock_threshold ?? 2;
@@ -361,31 +438,29 @@
                 const brand = (d.brand && d.brand !== 'Не указан') ? d.brand : 'Линзы';
                 document.getElementById('brand-sub').textContent = `${brand} • ${duration} дней`;
 
-                // Статус-строка
-                const worn = duration - Math.max(daysL, daysR);
-                const dayNum = worn < 1 ? 1 : worn;
-                const mode = d.continuous_mode ? 'Пролонгированный режим' : 'Дневной режим';
+                // Статус
+                const worn   = duration - Math.max(daysL, daysR);
+                const dayNum = Math.max(1, worn);
+                const mode   = d.continuous_mode ? 'Пролонгированный режим' : 'Дневной режим';
                 document.getElementById('top-status').innerHTML =
-                    `Сегодня <b>${dayNum}-й день</b>&nbsp;носки • ${mode}`;
+                    `Сегодня <b>${dayNum}-й&nbsp;день</b> носки • ${mode}`;
 
                 // Кольца
-                setRing('bar-l', 'ring-text-l', daysL, duration);
-                setRing('bar-r', 'ring-text-r', daysR, duration);
+                setRing('l', daysL, duration);
+                setRing('r', daysR, duration);
 
-                // Характеристики — левый
+                // Характеристики
                 document.getElementById('pwr-l').textContent = fmt(d.left?.pwr);
                 document.getElementById('bc-l').textContent  = d.bc ?? '—';
-                if (d.left?.cyl !== null && d.left?.cyl !== undefined) {
+                document.getElementById('pwr-r').textContent = fmt(d.right?.pwr);
+                document.getElementById('bc-r').textContent  = d.bc ?? '—';
+                if (d.left?.cyl != null)  {
                     document.getElementById('cyl-row-l').style.display = '';
                     document.getElementById('ax-row-l').style.display  = '';
                     document.getElementById('cyl-l').textContent = fmt(d.left.cyl);
-                    document.getElementById('ax-l').textContent  = (d.left.axis ?? '—') + '°';
+                    document.getElementById('ax-l').textContent  = (d.left.axis  ?? '—') + '°';
                 }
-
-                // Характеристики — правый
-                document.getElementById('pwr-r').textContent = fmt(d.right?.pwr);
-                document.getElementById('bc-r').textContent  = d.bc ?? '—';
-                if (d.right?.cyl !== null && d.right?.cyl !== undefined) {
+                if (d.right?.cyl != null) {
                     document.getElementById('cyl-row-r').style.display = '';
                     document.getElementById('ax-row-r').style.display  = '';
                     document.getElementById('cyl-r').textContent = fmt(d.right.cyl);
@@ -395,142 +470,44 @@
                 // Запас
                 updateStockDisplay();
 
-                // Раствор из БД
+                // Раствор
                 if (d.solution) {
                     const sol = d.solution;
                     const pct = Math.round((sol.days_used / sol.max_days) * 100);
-                    setTimeout(() => {
-                        document.getElementById('sol-fill').style.width = pct + '%';
-                    }, 100);
-                    document.getElementById('sol-label').textContent =
-                        `(${sol.days_used}/${sol.max_days} дн.)`;
-                } else {
-                    document.getElementById('sol-label').textContent = '(нет данных)';
+                    setTimeout(() => { document.getElementById('sol-fill').style.width = pct + '%'; }, 100);
+                    document.getElementById('sol-label').textContent = `(${sol.days_used}/${sol.max_days} дн.)`;
+                    const dateEl = document.getElementById('sol-date');
+                    if (dateEl && sol.opened_date) {
+                        const dt = new Date(sol.opened_date);
+                        dateEl.textContent = 'Открыт: ' + dt.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                        dateEl.style.display = 'block';
+                    }
                 }
 
-                // Восстанавливаем состояние "надеты" если последнее событие — worn
+                // Восстанавливаем состояние надевания
                 if (d.last_worn) {
-                    const wornTime = new Date(d.last_worn + 'Z');
-                    const now = new Date();
-                    const hoursSince = (now - wornTime) / 36e5;
-                    // Считаем "надеты" если надел сегодня и прошло < 18 часов
-                    if (hoursSince < 18 && wornTime.toDateString() === now.toDateString()) {
+                    const wornTime    = new Date(d.last_worn + 'Z').getTime();
+                    const removedTime = d.last_removed ? new Date(d.last_removed + 'Z').getTime() : 0;
+                    const now         = Date.now();
+                    const sameDay     = new Date(wornTime).toDateString() === new Date(now).toDateString();
+                    const hrs         = (now - wornTime) / 36e5;
+                    // Надеты: сегодня, < 18ч назад, и снятие не было ПОСЛЕ надевания
+                    if (sameDay && hrs < 18 && wornTime > removedTime) {
                         lensesWorn = true;
                         const btn = document.getElementById('wear-btn');
                         btn.classList.add('active');
                         btn.innerHTML = '✅ ЛИНЗЫ НАДЕТЫ';
+                        startTimer(wornTime);
                     }
                 }
 
-            } catch(e) {
-                console.error('loadData error:', e);
+            } catch (e) {
+                console.error('loadData:', e);
                 removeSkeletons();
             }
         }
 
-        // ── Кнопки замены ──
-        document.getElementById('btn-replace-l').onclick    = () => setRing('bar-l', 'ring-text-l', duration, duration);
-        document.getElementById('btn-replace-r').onclick    = () => setRing('bar-r', 'ring-text-r', duration, duration);
-        document.getElementById('btn-replace-both').onclick = () => {
-            setRing('bar-l', 'ring-text-l', duration, duration);
-            setRing('bar-r', 'ring-text-r', duration, duration);
-        };
-
-        // ── Надеть / очки ──
-        document.getElementById('wear-btn').onclick = function() {
-            this.classList.toggle('active');
-            this.innerHTML = this.classList.contains('active') ? '✅ ЛИНЗЫ НАДЕТЫ' : '👁️ НАДЕТЬ ЛИНЗЫ';
-        };
-        document.getElementById('gl-btn').onclick = function() {
-            const on = this.classList.toggle('active');
-            document.getElementById('card-l').classList.toggle('inactive', on);
-            document.getElementById('card-r').classList.toggle('inactive', on);
-            document.getElementById('action-area').style.display = on ? 'none' : 'block';
-        };
-
-        // ── Раствор ──
-        document.getElementById('sol-reset').onclick = () => {
-            document.getElementById('sol-fill').style.width = '100%';
-        };
-
         loadData();
-
-        // ─────────────────────────────────────────
-        // API-хелпер
-        async function api(path, method='POST', body=null) {
-            const opts = {
-                method,
-                headers: { 'bypass-tunnel-reminder': 'true', 'Content-Type': 'application/json' }
-            };
-            if (body) opts.body = JSON.stringify(body);
-            try {
-                const r = await fetch(`${API_URL}${path}`, opts);
-                return await r.json();
-            } catch(e) {
-                console.error('API error', path, e);
-                return null;
-            }
-        }
-
-        // ── Замена линз — Optimistic UI ──
-        function replaceLens(eye) {
-            // 1. Сразу обновляем UI
-            if (eye === 'left'  || eye === 'both') { setRing('bar-l', 'ring-text-l', duration, duration); stockL = Math.max(0, stockL-1); }
-            if (eye === 'right' || eye === 'both') { setRing('bar-r', 'ring-text-r', duration, duration); stockR = Math.max(0, stockR-1); }
-            updateStockDisplay();
-            const btnMap = { left: 'btn-replace-l', right: 'btn-replace-r', both: 'btn-replace-both' };
-            const btn = document.getElementById(btnMap[eye]);
-            if (btn) { btn.style.background = 'var(--accent-green)'; setTimeout(() => btn.style.background = '', 700); }
-            // 2. Фоном сохраняем в БД
-            api(`/api/replace/${uid}/${eye}`);
-        }
-
-        document.getElementById('btn-replace-l').onclick    = () => replaceLens('left');
-        document.getElementById('btn-replace-r').onclick    = () => replaceLens('right');
-        document.getElementById('btn-replace-both').onclick = () => replaceLens('both');
-
-        // ── Надеть / снять линзы — Optimistic UI ──
-        let lensesWorn = false;
-        document.getElementById('wear-btn').onclick = function() {
-            lensesWorn = !lensesWorn;
-            if (lensesWorn) {
-                this.classList.add('active');
-                this.innerHTML = '✅ ЛИНЗЫ НАДЕТЫ';
-                api(`/api/wear/${uid}`);
-            } else {
-                this.classList.remove('active');
-                this.innerHTML = '👁️ НАДЕТЬ ЛИНЗЫ';
-                api(`/api/remove/${uid}`);
-            }
-        };
-
-        // ── Сегодня в очках — Optimistic UI ──
-        let glassesOn = false;
-        document.getElementById('gl-btn').onclick = function() {
-            glassesOn = !glassesOn;
-            this.classList.toggle('active', glassesOn);
-            document.getElementById('card-l').classList.toggle('inactive', glassesOn);
-            document.getElementById('card-r').classList.toggle('inactive', glassesOn);
-            document.getElementById('action-area').style.display = glassesOn ? 'none' : 'block';
-            api(`/api/glasses/${uid}`, 'POST', { active: glassesOn });
-        };
-
-        // ── Раствор: обновил — Optimistic UI ──
-        document.getElementById('sol-reset').onclick = function() {
-            document.getElementById('sol-fill').style.width = '100%';
-            document.getElementById('sol-label').textContent = '(0/90 дн.)';
-            api(`/api/solution/reset/${uid}`);
-        };
-
-        // ── Запас +/- — Optimistic UI ──
-        function changeStock(side, delta) {
-            if (side === 'l') stockL = Math.max(0, stockL + delta);
-            else              stockR = Math.max(0, stockR + delta);
-            updateStockDisplay();
-            const eye = side === 'l' ? 'left' : 'right';
-            api(`/api/stock/${uid}/${eye}/${delta}`);
-        }
     </script>
 </body>
 </html>
-

@@ -299,7 +299,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        const API_URL  = "https://empty-impalas-scream.loca.lt";
+        const API_URL  = "https://tricky-paws-crash.loca.lt";
         const URL_BASE = "https://foxlexa777.github.io/lens-bot/";
 
         // ── user_id ──
@@ -474,7 +474,12 @@
                     dateEl.textContent = 'Открыт: ' + _now.getDate() + ' ' + _m[_now.getMonth()+1] + ' ' + _now.getFullYear() + ' г.';
                     dateEl.style.display = 'block';
                 }
-                api(`/api/solution/reset/${uid}`);
+                // Передаём локальную дату пользователя (не UTC)
+                const _ld = new Date();
+                const _localDate = _ld.getFullYear() + '-' +
+                    String(_ld.getMonth()+1).padStart(2,'0') + '-' +
+                    String(_ld.getDate()).padStart(2,'0');
+                api(`/api/solution/reset/${uid}`, 'POST', { local_date: _localDate });
             });
         };
 

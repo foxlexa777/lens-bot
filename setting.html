@@ -184,8 +184,8 @@
  <div class="header">
         <h1>Настройка линз</h1>
         <div class="nav-icons">
-            <button class="nav-btn">🕒</button>
-            <button class="nav-btn">⚙️</button>
+            <button class="nav-btn" id="btn-home" title="Главная">🏠</button>
+            <button class="nav-btn" id="btn-history-s" title="История">🕒</button>
         </div>
     </div>
 
@@ -200,22 +200,22 @@
                 <select id="lens-brand">
                     <option value="" disabled selected>— Выберите линзы —</option>
                     <optgroup label="Acuvue (Johnson & Johnson)">
-                        <option value="acuvue-oasys">Acuvue Oasys (2-week)</option>
-                        <option value="acuvue-oasys-1day">Acuvue Oasys 1-Day</option>
+                        <option value="Acuvue Oasys">Acuvue Oasys (2-week)</option>
+                        <option value="Acuvue Oasys 1-Day">Acuvue Oasys 1-Day</option>
                     </optgroup>
                     <optgroup label="Alcon">
-                        <option value="air-optix-hydraglyde">Air Optix Plus HydraGlyde</option>
-                        <option value="dailies-total1">Dailies Total1</option>
+                        <option value="Air Optix Plus HydraGlyde">Air Optix Plus HydraGlyde</option>
+                        <option value="Dailies Total1">Dailies Total1</option>
                     </optgroup>
                     <optgroup label="CooperVision">
-                        <option value="biofinity">Biofinity</option>
-                        <option value="myday">MyDay daily disposable</option>
+                        <option value="Biofinity">Biofinity</option>
+                        <option value="MyDay">MyDay daily disposable</option>
                     </optgroup>
                     <optgroup label="Bausch + Lomb">
-                        <option value="ultra">Bausch + Lomb ULTRA</option>
-                        <option value="biotrue-oneday">Biotrue ONEday</option>
+                        <option value="Bausch + Lomb ULTRA">Bausch + Lomb ULTRA</option>
+                        <option value="Biotrue ONEday">Biotrue ONEday</option>
                     </optgroup>
-                    <option value="other">Другой бренд...</option>
+                    <option value="Другой бренд">Другой бренд...</option>
                 </select>
             </div>
         </div>
@@ -297,11 +297,7 @@
         <input type="number" id="bc-all" step="0.1" value="8.6">
     </div>
 
-    <span class="section-label">Уход за линзами</span>
-    <div class="card loading-data">
-        <span class="solution-desc">Открытый флакон с раствором безопасен не более 90 дней. Отметьте, чтобы бот напомнил вам о его замене.</span>
-        <button id="solution-btn" class="solution-btn">🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН</button>
-    </div>
+
 
     <span class="section-label">Замена и покупки</span>
     <div class="card loading-data">
@@ -527,14 +523,7 @@
         toggleReminderFields();
         toggleWeekendField();
 
-        // Логика кнопки раствора
-        let solActive = false;
-        const sBtn = document.getElementById('solution-btn');
-        sBtn.onclick = () => {
-            solActive = !solActive;
-            sBtn.classList.toggle('active');
-            sBtn.innerText = solActive ? "✅ ФЛАКОН УЧТЕН (90 ДНЕЙ)" : "🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН";
-        };
+
 
         // Логика остатка дней
         document.getElementById('duration').onchange = (e) => {
@@ -636,8 +625,13 @@
                 tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" });
             }
         });
+        // Навигация
+        const URL_BASE_S = "https://foxlexa777.github.io/lens-bot/";
+        const uidS = getTelegramUserId();
+        const btnHome = document.getElementById('btn-home');
+        const btnHist = document.getElementById('btn-history-s');
+        if (btnHome) btnHome.onclick = () => { window.location.href = `${URL_BASE_S}index.html?uid=${uidS}`; };
+        if (btnHist) btnHist.onclick = () => { window.location.href = `${URL_BASE_S}history.html?uid=${uidS}`; };
     </script>
 </body>
 </html>
-
-

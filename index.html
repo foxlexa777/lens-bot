@@ -3,238 +3,503 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Lenses Pro v16</title>
+    <title>Мои линзы</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #000000;
-            --card-bg: #1c1c1e;
-            --border: #2c2c2e;
-            --text-color: #ffffff;
-            --hint-color: #8e8e93;
-            --accent-blue: #0A84FF;
-            --accent-red: #FF453A;
-            --accent-orange: #FF9F0A;
+            --bg: #000000;
+            --card: #1c1c1e;
+            --card2: #2c2c2e;
+            --text: #ffffff;
+            --sub: #8e8e93;
+            --blue: #007aff;
+            --green: #34c759;
+            --yellow: #ffd60a;
+            --orange: #ff9f0a;
+            --red: #ff453a;
+            --separator: #38383a;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background-color: var(--bg-color); color: var(--text-color);
-            font-family: -apple-system, system-ui, sans-serif;
-            margin: 0; padding: 12px 16px; -webkit-user-select: none;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
+            padding: 16px 16px 40px;
+            min-height: 100vh;
         }
 
-        /* Шапка */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .header h1 { font-size: 22px; margin: 0; }
-        .nav-icons { display: flex; gap: 8px; }
-        .nav-btn { background: var(--card-bg); border: none; border-radius: 10px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 16px; color: white; }
+        /* ── HEADER ── */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .header-title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+        .header-date  { font-size: 13px; color: var(--sub); margin-top: 3px; }
+        .header-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, #007aff, #5ac8fa);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
 
-        .brand-sub { font-size: 13px; color: var(--accent-blue); font-weight: 500; margin-bottom: 16px; display: block; }
+        /* ── HERO CARD — прогресс пары ── */
+        .hero-card {
+            background: linear-gradient(135deg, #1c1c1e 0%, #2c2c2e 100%);
+            border-radius: 22px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: -40px; right: -40px;
+            width: 160px; height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,122,255,0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero-label {
+            font-size: 12px; font-weight: 600; color: var(--sub);
+            text-transform: uppercase; letter-spacing: 0.8px;
+            margin-bottom: 6px;
+        }
+        .hero-days {
+            font-size: 52px; font-weight: 800; letter-spacing: -2px;
+            line-height: 1;
+        }
+        .hero-days span { font-size: 22px; font-weight: 500; color: var(--sub); margin-left: 4px; }
+        .hero-sub { font-size: 13px; color: var(--sub); margin-top: 4px; margin-bottom: 16px; }
 
-        /* Верхний статус */
-        .top-status { text-align: center; font-size: 14px; color: var(--hint-color); margin-bottom: 16px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 12px; }
-        .top-status b { color: var(--accent-blue); }
+        /* Прогресс-бар */
+        .progress-track {
+            height: 6px; background: var(--card2); border-radius: 99px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; border-radius: 99px;
+            transition: width 0.8s cubic-bezier(.23,1,.32,1);
+        }
+        .progress-labels {
+            display: flex; justify-content: space-between;
+            font-size: 11px; color: var(--sub); margin-top: 6px;
+        }
 
-        /* Кольца */
-        .rings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .eye-card { background: var(--card-bg); border-radius: 20px; padding: 14px 10px; position: relative; transition: 0.3s; }
-        .eye-card.inactive { opacity: 0.25; }
-        
-        .eye-label { font-size: 9px; color: var(--hint-color); text-transform: uppercase; font-weight: 700; text-align: center; margin-bottom: 10px; letter-spacing: 1px; }
-        .eye-body { display: flex; align-items: center; justify-content: space-between; }
-        
-        .specs { display: flex; flex-direction: column; gap: 2px; }
-        .specs div { font-size: 9px; color: var(--hint-color); }
-        .specs b { color: #fff; font-size: 10px; }
+        /* ── ГЛАЗА ── */
+        .eyes-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 
-        .ring { position: relative; width: 70px; height: 70px; }
-        .ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
-        .ring circle { fill: transparent; stroke-width: 8; stroke-linecap: round; }
-        .ring .bg { stroke: var(--border); }
-        .ring .bar { stroke: var(--accent-blue); transition: 0.6s; }
-        .ring-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; }
+        .eye-card {
+            background: var(--card);
+            border-radius: 18px;
+            padding: 16px;
+        }
+        .eye-header {
+            display: flex; align-items: center; gap: 7px;
+            margin-bottom: 12px;
+        }
+        .eye-dot {
+            width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+        }
+        .eye-name { font-size: 13px; font-weight: 600; color: var(--sub); }
 
-        /* Кнопки замены */
-        .replace-section { margin-bottom: 20px; }
-        .replace-row { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 8px; margin-bottom: 6px; }
-        .btn-replace { background: var(--card-bg); border: 1px solid var(--border); color: white; padding: 10px 2px; border-radius: 12px; font-size: 10px; font-weight: 600; }
-        .btn-replace.both { background: var(--accent-blue); border-color: var(--accent-blue); }
-        .replace-hint { font-size: 9px; color: var(--hint-color); text-align: center; display: block; }
+        .eye-metric { margin-bottom: 8px; }
+        .eye-metric-label { font-size: 11px; color: var(--sub); margin-bottom: 2px; }
+        .eye-metric-value { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+        .eye-metric-unit  { font-size: 12px; color: var(--sub); font-weight: 400; }
 
-        /* Управление */
-        .btn-main { width: 100%; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: var(--card-bg); color: white; font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-        .btn-main.active { background: var(--accent-blue); border-color: var(--accent-blue); }
-        .btn-note { font-size: 10px; color: var(--hint-color); text-align: center; display: block; margin-bottom: 12px; }
+        .eye-stock {
+            display: flex; align-items: center; justify-content: space-between;
+            background: var(--card2); border-radius: 10px;
+            padding: 8px 10px; margin-top: 10px;
+        }
+        .eye-stock-label { font-size: 11px; color: var(--sub); }
+        .eye-stock-value { font-size: 15px; font-weight: 700; }
 
-        .btn-glasses { width: 100%; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: transparent; color: var(--hint-color); font-size: 13px; font-weight: 600; margin-bottom: 20px; }
-        .btn-glasses.active { border-color: var(--accent-orange); color: var(--accent-orange); }
+        /* ── ИНФО КАРТОЧКИ ── */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 
-        /* Блок раствора */
-        .card-sol { background: var(--card-bg); border-radius: 20px; padding: 16px; margin-bottom: 16px; }
-        .sol-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .sol-btn { background: var(--accent-blue); border: none; color: white; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; }
-        .progress-bg { background: var(--border); height: 6px; border-radius: 4px; overflow: hidden; }
-        .progress-fill { background: var(--accent-blue); height: 100%; width: 50%; }
+        .info-card {
+            background: var(--card); border-radius: 18px; padding: 14px 16px;
+        }
+        .info-icon { font-size: 22px; margin-bottom: 8px; }
+        .info-val  { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+        .info-lbl  { font-size: 12px; color: var(--sub); margin-top: 2px; }
 
-        /* Склад */
-        .stock-card { background: var(--card-bg); border-radius: 20px; padding: 16px; margin-bottom: 12px; }
-        .stock-main { display: flex; align-items: center; margin-bottom: 10px; }
-        .stock-seg { flex: 1; text-align: center; }
-        .stock-div { width: 1px; height: 30px; background: var(--border); }
-        .stock-l { font-size: 9px; color: var(--hint-color); text-transform: uppercase; display: block; margin-bottom: 4px; }
-        .stock-ctrl { display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .stock-v { font-size: 17px; font-weight: 700; min-width: 35px; }
-        .s-btn { background: var(--border); border: none; color: var(--accent-blue); width: 22px; height: 22px; border-radius: 6px; font-weight: 800; }
-        .buy-link { display: block; text-align: center; color: var(--accent-blue); font-size: 13px; font-weight: 600; text-decoration: none; }
+        /* ── СПИСОК ДЕТАЛЕЙ ── */
+        .details-card {
+            background: var(--card); border-radius: 18px;
+            overflow: hidden; margin-bottom: 16px;
+        }
+        .detail-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 13px 16px;
+            border-bottom: 1px solid var(--separator);
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { font-size: 15px; color: var(--sub); }
+        .detail-value { font-size: 15px; font-weight: 600; }
 
-        .tip-box { text-align: center; color: var(--hint-color); font-size: 10px; margin-top: 16px; opacity: 0.6; padding: 0 10px; }
+        /* ── СТАТУС БЕЙДЖ ── */
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 99px;
+            font-size: 13px; font-weight: 600;
+            margin-bottom: 16px;
+        }
+        .status-badge.good    { background: rgba(52,199,89,0.15);  color: var(--green); }
+        .status-badge.warn    { background: rgba(255,159,10,0.15); color: var(--orange); }
+        .status-badge.danger  { background: rgba(255,69,58,0.15);  color: var(--red); }
+        .status-badge.neutral { background: rgba(142,142,147,0.15); color: var(--sub); }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+        /* ── КНОПКА ЗАМЕНЫ ── */
+        .replace-btn {
+            width: 100%;
+            background: var(--blue);
+            color: white;
+            border: none; border-radius: 14px;
+            padding: 16px;
+            font-size: 16px; font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-bottom: 12px;
+        }
+        .replace-btn:active { opacity: 0.75; }
+
+        .wearing-btn {
+            width: 100%;
+            background: var(--card);
+            color: var(--text);
+            border: none; border-radius: 14px;
+            padding: 16px;
+            font-size: 16px; font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .wearing-btn:active { opacity: 0.75; }
+
+        /* ── NO DATA STATE ── */
+        .empty-state {
+            display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            min-height: 60vh; text-align: center; padding: 32px;
+        }
+        .empty-icon { font-size: 64px; margin-bottom: 16px; }
+        .empty-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+        .empty-sub { font-size: 15px; color: var(--sub); line-height: 1.5; }
+
+        /* ── СКЕЛЕТОНЫ ── */
+        @keyframes shimmer {
+            0%   { background-position: -400px 0; }
+            100% { background-position:  400px 0; }
+        }
+        .sk {
+            background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%);
+            background-size: 400px 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+            color: transparent !important;
+        }
+        .sk-text  { height: 14px; border-radius: 6px; }
+        .sk-big   { height: 52px; border-radius: 8px; width: 120px; }
+        .sk-card  { border-radius: 18px; }
+        .sk-badge { height: 28px; width: 140px; border-radius: 99px; }
     </style>
 </head>
 <body>
 
+    <!-- HEADER -->
     <div class="header">
-        <h1>Мои линзы</h1>
-        <div class="nav-icons">
-            <button class="nav-btn">🕒</button>
-            <button class="nav-btn">⚙️</button>
+        <div>
+            <div class="header-title">Мои линзы</div>
+            <div class="header-date" id="header-date"></div>
         </div>
-    </div>
-    <span class="brand-sub">Acuvue Oasys • 14 дней</span>
-
-    <div class="top-status">
-        Сегодня <b>12-й день</b> носки • Дневной режим
+        <div class="header-avatar">👁</div>
     </div>
 
-    <div class="rings-grid">
-        <div class="eye-card" id="card-l">
-            <div class="eye-label">Левый (OS)</div>
-            <div class="eye-body">
-                <div class="specs">
-                    <div>PWR <b>-2.50</b></div>
-                    <div>BC <b>8.6</b></div>
-                    <div>CYL <b>-0.75</b></div>
-                    <div>AX <b>180°</b></div>
+    <!-- Всё это показывается после загрузки -->
+    <div id="main-content" style="display:none">
+
+        <!-- Статус бейдж -->
+        <div id="status-badge" class="status-badge neutral">
+            <div class="status-dot"></div>
+            <span id="status-text">Загрузка...</span>
+        </div>
+
+        <!-- HERO: дней осталось -->
+        <div class="hero-card">
+            <div class="hero-label">Осталось носить</div>
+            <div class="hero-days" id="hero-days">— <span>дн.</span></div>
+            <div class="hero-sub" id="hero-sub">Дата замены: —</div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+            </div>
+            <div class="progress-labels">
+                <span>Сегодня</span>
+                <span id="progress-end">—</span>
+            </div>
+        </div>
+
+        <!-- ГЛАЗА -->
+        <div class="eyes-row">
+            <div class="eye-card" id="eye-left">
+                <div class="eye-header">
+                    <div class="eye-dot" style="background:#007aff"></div>
+                    <div class="eye-name">Левый (OS)</div>
                 </div>
-                <div class="ring">
-                    <svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="45"/><circle class="bar" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="60"/></svg>
-                    <div class="ring-text">11</div>
+                <div class="eye-metric">
+                    <div class="eye-metric-label">Диоптрии</div>
+                    <div class="eye-metric-value" id="pwr-left">—</div>
+                </div>
+                <div id="astig-left" style="display:none">
+                    <div class="eye-metric">
+                        <div class="eye-metric-label">Цилиндр / Ось</div>
+                        <div class="eye-metric-value" id="cyl-left" style="font-size:16px">—</div>
+                    </div>
+                </div>
+                <div class="eye-stock">
+                    <div class="eye-stock-label">Запас</div>
+                    <div class="eye-stock-value" id="stock-left">— шт.</div>
+                </div>
+            </div>
+            <div class="eye-card" id="eye-right">
+                <div class="eye-header">
+                    <div class="eye-dot" style="background:#ff453a"></div>
+                    <div class="eye-name">Правый (OD)</div>
+                </div>
+                <div class="eye-metric">
+                    <div class="eye-metric-label">Диоптрии</div>
+                    <div class="eye-metric-value" id="pwr-right">—</div>
+                </div>
+                <div id="astig-right" style="display:none">
+                    <div class="eye-metric">
+                        <div class="eye-metric-label">Цилиндр / Ось</div>
+                        <div class="eye-metric-value" id="cyl-right" style="font-size:16px">—</div>
+                    </div>
+                </div>
+                <div class="eye-stock">
+                    <div class="eye-stock-label">Запас</div>
+                    <div class="eye-stock-value" id="stock-right">— шт.</div>
                 </div>
             </div>
         </div>
-        <div class="eye-card" id="card-r">
-            <div class="eye-label">Правый (OD)</div>
-            <div class="eye-body">
-                <div class="specs">
-                    <div>PWR <b>-2.25</b></div>
-                    <div>BC <b>8.6</b></div>
-                    <div>CYL <b>-1.25</b></div>
-                    <div>AX <b>170°</b></div>
-                </div>
-                <div class="ring">
-                    <svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="45"/><circle class="bar" id="bar-r" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="180" style="stroke:var(--accent-red)"/></svg>
-                    <div class="ring-text" style="color:var(--accent-red)">4</div>
-                </div>
+
+        <!-- ИНФО -->
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-icon">🔵</div>
+                <div class="info-val" id="info-bc">—</div>
+                <div class="info-lbl">Радиус (BC)</div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">⏱</div>
+                <div class="info-val" id="info-duration">—</div>
+                <div class="info-lbl">Срок пары</div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">🔔</div>
+                <div class="info-val" id="info-notify">—</div>
+                <div class="info-lbl">Напоминание</div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">📦</div>
+                <div class="info-val" id="info-threshold">—</div>
+                <div class="info-lbl">Порог запаса</div>
             </div>
         </div>
-    </div>
 
-    <div class="replace-section">
-        <div class="replace-row">
-            <button class="btn-replace">ЛЕВУЮ</button>
-            <button class="btn-replace both">ОБЕ ЛИНЗЫ</button>
-            <button class="btn-replace">ПРАВУЮ</button>
-        </div>
-        <span class="replace-hint">Нажмите на кнопку выше, чтобы надеть новые линзы</span>
-    </div>
-
-    <div id="action-area">
-        <button class="btn-main" id="wear-btn">👁️ НАДЕТЬ ЛИНЗЫ</button>
-        <span class="btn-note">Нажмите, чтобы получить напоминание снять линзы</span>
-    </div>
-
-    <button class="btn-glasses" id="gl-btn">👓 Сегодня я в очках</button>
-
-    <div class="card-sol">
-        <div class="sol-row">
-            <div style="font-size:14px; font-weight:600;">💧 Срок раствора <span>(45/90 дн.)</span></div>
-            <button class="sol-btn" id="sol-reset">ОБНОВИЛ</button>
-        </div>
-        <div class="progress-bg"><div id="sol-fill" class="progress-fill"></div></div>
-    </div>
-
-    <div class="stock-card">
-        <div class="stock-main">
-            <div class="stock-seg">
-                <span class="stock-l">Запас L</span>
-                <div class="stock-ctrl">
-                    <button class="s-btn">−</button>
-                    <span class="stock-v">4 шт</span>
-                    <button class="s-btn">+</button>
-                </div>
+        <!-- ДЕТАЛИ -->
+        <div class="details-card">
+            <div class="detail-row">
+                <div class="detail-label">Бренд</div>
+                <div class="detail-value" id="d-brand">—</div>
             </div>
-            <div class="stock-div"></div>
-            <div class="stock-seg">
-                <span class="stock-l">Запас R</span>
-                <div class="stock-ctrl">
-                    <button class="s-btn">−</button>
-                    <span class="stock-v" style="color:var(--accent-red)">1 шт</span>
-                    <button class="s-btn">+</button>
-                </div>
+            <div class="detail-row">
+                <div class="detail-label">Дата замены</div>
+                <div class="detail-value" id="d-replace">—</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Уведомления</div>
+                <div class="detail-value" id="d-reminders">—</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Пролонгированный</div>
+                <div class="detail-value" id="d-continuous">—</div>
             </div>
         </div>
-        <a href="#" class="buy-link">🛒 Купить линзы</a>
+
     </div>
 
-    <div class="tip-box">
-        💡 Помните: Каждые 15 минут делайте перерыв, глядя вдаль.
+    <!-- СКЕЛЕТОН (виден при загрузке) -->
+    <div id="skeleton-content">
+        <div class="sk sk-badge" style="margin-bottom:16px"></div>
+        <div class="sk sk-card" style="height:160px; margin-bottom:16px"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px">
+            <div class="sk sk-card" style="height:180px"></div>
+            <div class="sk sk-card" style="height:180px"></div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px">
+            <div class="sk sk-card" style="height:90px"></div>
+            <div class="sk sk-card" style="height:90px"></div>
+            <div class="sk sk-card" style="height:90px"></div>
+            <div class="sk sk-card" style="height:90px"></div>
+        </div>
+        <div class="sk sk-card" style="height:180px; margin-bottom:16px"></div>
+    </div>
+
+    <!-- ПУСТОЕ СОСТОЯНИЕ -->
+    <div class="empty-state" id="empty-state">
+        <div class="empty-icon">👁‍🗨</div>
+        <div class="empty-title">Данные не найдены</div>
+        <div class="empty-sub">Настройте свои линзы через меню<br><b>⚙️ Настройки</b></div>
     </div>
 
     <script>
-        const wearBtn = document.getElementById('wear-btn');
-        const glBtn = document.getElementById('gl-btn');
-        const actionArea = document.getElementById('action-area');
-        
-        wearBtn.onclick = () => {
-            wearBtn.classList.toggle('active');
-            wearBtn.innerHTML = wearBtn.classList.contains('active') ? '✅ ЛИНЗЫ НАДЕТЫ' : '👁️ НАДЕТЬ ЛИНЗЫ';
-        };
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-        glBtn.onclick = () => {
-            const isActive = glBtn.classList.toggle('active');
-            document.getElementById('card-l').classList.toggle('inactive');
-            document.getElementById('card-r').classList.toggle('inactive');
-            actionArea.style.display = isActive ? 'none' : 'block';
-        };
+        // ⚠️ ЗАМЕНИ НА АКТУАЛЬНЫЙ URL ОТ LOCALTUNNEL
+        const API_URL = "https://wicked-camels-fix.loca.lt";
 
-        document.getElementById('sol-reset').onclick = function() {
-            document.getElementById('sol-fill').style.width = '100%';
-        };
+        // Дата в заголовке
+        const now = new Date();
+        document.getElementById('header-date').textContent = now.toLocaleDateString('ru-RU', {
+            weekday: 'long', day: 'numeric', month: 'long'
+        });
 
-        // Вычисляем процент заполнения (допустим, максимум 14 дней)
-        const maxDays = 14; 
-        const rings = document.querySelectorAll('.ring-progress'); // Найди класс самого круга
-        
-        if(rings.length >= 2) {
-            // Формула для stroke-dashoffset (если используешь её в CSS)
-            const lOffset = 283 - (283 * (l / maxDays)); 
-            const rOffset = 283 - (283 * (r / maxDays));
-            rings[0].style.strokeDashoffset = lOffset;
-            rings[1].style.strokeDashoffset = rOffset;
+        // Получаем user_id из URL параметра или initData
+        function getUserId() {
+            const uid1 = tg.initDataUnsafe?.user?.id;
+            if (uid1) return uid1;
+            try {
+                const params = new URLSearchParams(tg.initData);
+                const u = params.get('user');
+                if (u) { const obj = JSON.parse(decodeURIComponent(u)); if (obj?.id) return obj.id; }
+            } catch(e) {}
+            try {
+                const uid3 = parseInt(new URLSearchParams(window.location.search).get('uid'));
+                if (uid3 > 0) return uid3;
+            } catch(e) {}
+            return 0;
         }
 
-        // Скрипт для чтения данных из URL и обновления колец
-        const params = new URLSearchParams(window.location.search);
-        const l = params.get('l') || 14;
-        const r = params.get('r') || 14;
-    
-        // Обновляем текст внутри колец (найди элементы с классом ring-text)
-        const ringTexts = document.querySelectorAll('.ring-text');
-        if(ringTexts.length >= 2) {
-        ringTexts[0].innerText = l;
-        ringTexts[1].innerText = r;
-    }
+        // Цвет прогресс-бара по проценту остатка
+        function progressColor(pct) {
+            if (pct > 50) return '#34c759';
+            if (pct > 25) return '#ffd60a';
+            if (pct > 10) return '#ff9f0a';
+            return '#ff453a';
+        }
+
+        // Статус бейдж
+        function setStatus(days, threshold) {
+            const badge = document.getElementById('status-badge');
+            const text  = document.getElementById('status-text');
+            if (days <= 0) {
+                badge.className = 'status-badge danger';
+                text.textContent = 'Пора менять линзы!';
+            } else if (days <= 2) {
+                badge.className = 'status-badge warn';
+                text.textContent = `Замена через ${days} дн.`;
+            } else {
+                badge.className = 'status-badge good';
+                text.textContent = 'Всё в порядке';
+            }
+        }
+
+        // Форматирование диоптрий
+        function fmt(val) {
+            if (val === null || val === undefined) return '—';
+            return (val >= 0 ? '+' : '') + parseFloat(val).toFixed(2);
+        }
+
+        async function loadData() {
+            const uid = getUserId();
+            if (!uid) {
+                document.getElementById('skeleton-content').style.display = 'none';
+                document.getElementById('empty-state').style.display = 'flex';
+                return;
+            }
+
+            try {
+                const resp = await fetch(`${API_URL}/api/get_settings/${uid}`, {
+                    headers: { 'bypass-tunnel-reminder': 'true' }
+                });
+                const d = await resp.json();
+
+                document.getElementById('skeleton-content').style.display = 'none';
+
+                if (d.status !== 'ok' || (!d.left?.pwr && !d.right?.pwr)) {
+                    document.getElementById('empty-state').style.display = 'flex';
+                    return;
+                }
+
+                // Показываем контент
+                document.getElementById('main-content').style.display = 'block';
+
+                const daysLeft = d.left?.days_left ?? d.right?.days_left ?? 0;
+                const duration = d.left?.duration  ?? d.right?.duration  ?? 14;
+
+                // Hero
+                document.getElementById('hero-days').innerHTML = `${daysLeft} <span>дн.</span>`;
+
+                // Дата замены
+                const replaceDate = new Date();
+                replaceDate.setDate(replaceDate.getDate() + daysLeft);
+                const replaceDateStr = replaceDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+                document.getElementById('hero-sub').textContent = `Дата замены: ${replaceDateStr}`;
+                document.getElementById('progress-end').textContent = replaceDateStr;
+                document.getElementById('d-replace').textContent = replaceDateStr;
+
+                // Прогресс
+                const pct = Math.max(0, Math.min(100, Math.round((daysLeft / duration) * 100)));
+                const fill = document.getElementById('progress-fill');
+                fill.style.background = progressColor(pct);
+                setTimeout(() => fill.style.width = pct + '%', 100);
+
+                // Статус
+                setStatus(daysLeft, d.stock_threshold);
+
+                // Левый глаз
+                document.getElementById('pwr-left').textContent = fmt(d.left?.pwr);
+                document.getElementById('stock-left').textContent = (d.left?.stock ?? '—') + ' шт.';
+                if (d.left?.cyl !== null && d.left?.cyl !== undefined) {
+                    document.getElementById('astig-left').style.display = 'block';
+                    document.getElementById('cyl-left').textContent = `${fmt(d.left.cyl)} / ${d.left.axis}°`;
+                }
+
+                // Правый глаз
+                document.getElementById('pwr-right').textContent = fmt(d.right?.pwr);
+                document.getElementById('stock-right').textContent = (d.right?.stock ?? '—') + ' шт.';
+                if (d.right?.cyl !== null && d.right?.cyl !== undefined) {
+                    document.getElementById('astig-right').style.display = 'block';
+                    document.getElementById('cyl-right').textContent = `${fmt(d.right.cyl)} / ${d.right.axis}°`;
+                }
+
+                // Инфо карточки
+                document.getElementById('info-bc').textContent       = d.bc ?? '—';
+                document.getElementById('info-duration').textContent = duration + ' дн.';
+                document.getElementById('info-notify').textContent   = d.notify_time ?? '—';
+                document.getElementById('info-threshold').textContent = (d.stock_threshold ?? '—') + ' шт.';
+
+                // Детали
+                document.getElementById('d-brand').textContent      = d.brand && d.brand !== 'Не указан' ? d.brand : '—';
+                document.getElementById('d-reminders').textContent  = d.reminders_active ? '✅ Включены' : '❌ Выключены';
+                document.getElementById('d-continuous').textContent = d.continuous_mode  ? '✅ Да' : 'Нет';
+
+            } catch(e) {
+                console.error(e);
+                document.getElementById('skeleton-content').style.display = 'none';
+                document.getElementById('empty-state').style.display = 'flex';
+            }
+        }
+
+        loadData();
     </script>
 </body>
-
 </html>
-

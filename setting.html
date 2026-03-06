@@ -357,16 +357,15 @@
         tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" }).show();
 
         // ⚠️ ЗАМЕНИ ЭТУ ССЫЛКУ на актуальную от localtunnel каждый раз при запуске!
-        const API_URL = "https://five-cats-agree.loca.lt";
+        const API_URL = "https://khaki-rice-watch.loca.lt";
 
-        // 🔍 ОТЛАДКА — показываем user_id прямо на странице (удали после проверки)
-        const _dbgUser = tg.initDataUnsafe?.user;
-        const _dbgDiv = document.createElement('div');
-        _dbgDiv.style = 'background:#1a1a2e;color:#58a6ff;padding:8px 12px;border-radius:10px;font-size:12px;margin-bottom:12px;word-break:break-all;';
-        _dbgDiv.innerHTML = '<b>DEBUG:</b> user_id=' + (_dbgUser?.id ?? 'undefined') 
-            + ' | first_name=' + (_dbgUser?.first_name ?? 'undefined')
-            + '<br>initData length=' + (tg.initData?.length ?? 0);
-        document.getElementById('save-status').after(_dbgDiv);
+        // 🔍 ОТЛАДКА
+        try {
+            const _u = tg.initDataUnsafe?.user;
+            alert("user_id=" + (_u?.id ?? "undefined") + "\nfirst_name=" + (_u?.first_name ?? "undefined") + "\ninitData.length=" + (tg.initData?.length ?? 0));
+        } catch(e) {
+            alert("ERROR: " + e.message);
+        }
 
         toggleReminderFields();
         toggleWeekendField();

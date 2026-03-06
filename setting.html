@@ -258,14 +258,14 @@
         <button id="solution-btn" class="solution-btn">🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН</button>
     </div>
                 
-<span class="section-label">Умные уведомления</span>
+<span class="section-label">Контроль ношения</span>
 <div class="settings-card">
     <div class="mode-row">
-        <div class="schedule-info">
+        <div class="schedule-info" style="flex: 1;">
             <div class="schedule-icon">🔔</div>
             <div class="schedule-text-block">
-                <span class="schedule-title">Контроль ношения</span>
-                <span class="schedule-sub">Напомнить надеть линзы утром</span>
+                <span class="schedule-title">Умные напоминания</span>
+                <span class="schedule-sub">Помогают не перенашивать линзы</span>
             </div>
         </div>
         <label class="switch">
@@ -273,18 +273,25 @@
             <span class="slider"></span>
         </label>
     </div>
-    <span class="solution-desc" style="margin-top: 10px; display: block;">
-        Бот напомнит надеть линзы, а вечером пришлет проверку: «Глаза не устали?», если вы долго в них.
-    </span>
+
+    <div class="info-note" style="background: rgba(0, 122, 255, 0.1); border-radius: 12px; padding: 12px; margin-top: 12px;">
+        <p style="font-size: 12px; color: #58a6ff; margin: 0; line-height: 1.4;">
+            ℹ️ <b>Важно:</b> Срок замены уменьшается только когда вы нажимаете <b>«Надел»</b>. Если сегодня вы в очках — просто не нажимайте кнопку, и ресурс линз сохранится.
+        </p>
+    </div>
 
     <div id="reminder-settings">
         <hr>
-        <div class="schedule-row">
-            <div class="schedule-info">
-                <span class="schedule-title">Будни (Пн-Пт)</span>
-                <span class="schedule-sub">Прислать напоминание в</span>
+        <div class="schedule-row" style="display: flex; align-items: center;">
+            <div class="schedule-info" style="width: 70%;">
+                <div class="schedule-text-block">
+                    <span class="schedule-title">Будни (Пн-Пт)</span>
+                    <span class="schedule-sub">Когда напомнить надеть?</span>
+                </div>
             </div>
-            <input type="time" id="time-work" class="time-input-styled" value="08:00">
+            <div style="width: 30%; display: flex; justify-content: flex-end;">
+                <input type="time" id="time-work" class="time-input-styled" value="08:00" style="width: 85px;">
+            </div>
         </div>
 
         <hr>
@@ -294,24 +301,29 @@
         </div>
         
         <div class="mode-row" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px;">
-            <div class="schedule-text-block">
+            <div class="schedule-text-block" style="width: 70%;">
                 <span class="schedule-title" style="font-size: 14px;">Ручной режим</span>
-                <span class="schedule-sub">Бот будет ждать вашего нажатия</span>
+                <span class="schedule-sub">Без авто-уведомлений</span>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="weekend-manual" onchange="toggleWeekendField()">
-                <span class="slider"></span>
-            </label>
+            <div style="width: 30%; display: flex; justify-content: flex-end;">
+                <label class="switch">
+                    <input type="checkbox" id="weekend-manual" onchange="toggleWeekendField()">
+                    <span class="slider"></span>
+                </label>
+            </div>
         </div>
 
-        <div id="weekend-time-row" class="schedule-row" style="margin-top: 10px;">
-            <div class="schedule-info">
-                <span class="schedule-sub">Авто-напоминание в</span>
+        <div id="weekend-time-row" class="schedule-row" style="margin-top: 10px; display: flex; align-items: center;">
+            <div class="schedule-info" style="width: 70%;">
+                <span class="schedule-sub">Напомнить в выходной в:</span>
             </div>
-            <input type="time" id="time-weekend" class="time-input-styled" value="10:00">
+            <div style="width: 30%; display: flex; justify-content: flex-end;">
+                <input type="time" id="time-weekend" class="time-input-styled" value="10:00" style="width: 85px;">
+            </div>
         </div>
     </div>
 </div>
+                
                 
     
 </div>
@@ -345,6 +357,26 @@
                 visionCard.classList.remove('show-astigmatism');
             }
         });
+
+        function toggleReminderFields() {
+    const isActive = document.getElementById('reminders-active').checked;
+    document.getElementById('reminder-settings').style.display = isActive ? 'block' : 'none';
+}
+
+function toggleWeekendField() {
+    const isManual = document.getElementById('weekend-manual').checked;
+    const timeRow = document.getElementById('weekend-time-row');
+    const timeInput = document.getElementById('time-weekend');
+    
+    if (isManual) {
+        timeRow.style.opacity = '0.3';
+        timeInput.disabled = true;
+    } else {
+        timeRow.style.opacity = '1';
+        timeInput.disabled = false;
+    }
+}
+        
 
         // Сбор данных и отправка в бота
        tg.onEvent('mainButtonClicked', function() {
@@ -386,6 +418,7 @@
 </body>
 
 </html>
+
 
 
 

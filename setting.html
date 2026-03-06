@@ -434,12 +434,6 @@
         // 🔥 ГЛАВНАЯ ФУНКЦИЯ — отправка на API вместо tg.sendData
         tg.onEvent('mainButtonClicked', async function() {
             try {
-                // Показываем что видит Telegram при нажатии кнопки
-                const debugUid = getTelegramUserId();
-                if (debugUid === 0) {
-                    const confirmed = confirm("⚠️ user_id не определён (=" + debugUid + ")\ninitData.length=" + tg.initData.length + "\n\nПродолжить сохранение?");
-                    if (!confirmed) return;
-                }
                 const isAstig = document.getElementById('astigmatism-mode').checked;
 
                 const data = {

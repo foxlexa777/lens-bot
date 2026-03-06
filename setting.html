@@ -433,7 +433,14 @@
                     
                     remind_before: parseInt(document.getElementById('remind-before').value) || 0,
                     notify_time: document.getElementById('notify-time').value || "10:00",
-                    stock_threshold: parseInt(document.getElementById('stock-threshold').value) || 2
+                    stock_threshold: parseInt(document.getElementById('stock-threshold').value) || 2,
+
+                    // 5 полей которых раньше не было
+                    continuous_mode: document.getElementById('continuous-mode').checked,
+                    reminders_active: document.getElementById('reminders-active').checked,
+                    time_work: document.getElementById('time-work').value || "08:00",
+                    time_weekend: document.getElementById('time-weekend').value || "10:00",
+                    weekend_manual: document.getElementById('weekend-manual').checked
                 };
 
                 // Показываем что идёт сохранение

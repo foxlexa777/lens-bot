@@ -257,37 +257,7 @@
         <span class="solution-desc">Открытый флакон с раствором безопасен не более 90 дней. Отметьте, чтобы бот напомнил вам о его замене.</span>
         <button id="solution-btn" class="solution-btn">🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН</button>
     </div>
-
-        
-                
-    
-</div>
-
-    <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" }).show();
-
-        // Логика кнопки раствора
-        let solActive = false;
-        const sBtn = document.getElementById('solution-btn');
-        sBtn.onclick = () => {
-            solActive = !solActive;
-            sBtn.classList.toggle('active');
-            sBtn.innerText = solActive ? "✅ ФЛАКОН УЧТЕН (90 ДНЕЙ)" : "🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН";
-        };
-
-        // Логика остатка дней
-        document.getElementById('duration').onchange = (e) => {
-            document.getElementById('days-left').value = e.target.value;
-        };
-
-        // Логика астигматизма (скрыть/показать поля)
-        const astigToggle = document.getElementById('astigmatism-mode');
-        const visionCard = document.getElementById('vision-card');
-        astigToggle.addEventListener('change', () => {
-            if(astigToggle.checked) {
-                visionCard.classList.add('show-astig<span class="section-label">Автоматический учет</span>
+<span class="section-label">Автоматический учет</span>
 <div class="settings-card">
     <div class="mode-row">
         <div>
@@ -324,7 +294,36 @@
         <input type="time" id="time-remove" class="time-input-styled" value="23:00">
     </div>
 </div>
-                    matism');
+        
+                
+    
+</div>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" }).show();
+
+        // Логика кнопки раствора
+        let solActive = false;
+        const sBtn = document.getElementById('solution-btn');
+        sBtn.onclick = () => {
+            solActive = !solActive;
+            sBtn.classList.toggle('active');
+            sBtn.innerText = solActive ? "✅ ФЛАКОН УЧТЕН (90 ДНЕЙ)" : "🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН";
+        };
+
+        // Логика остатка дней
+        document.getElementById('duration').onchange = (e) => {
+            document.getElementById('days-left').value = e.target.value;
+        };
+
+        // Логика астигматизма (скрыть/показать поля)
+        const astigToggle = document.getElementById('astigmatism-mode');
+        const visionCard = document.getElementById('vision-card');
+        astigToggle.addEventListener('change', () => {
+            if(astigToggle.checked) {
+                visionCard.classList.add('show-astigmatism');
             } else {
                 visionCard.classList.remove('show-astigmatism');
             }
@@ -370,6 +369,7 @@
 </body>
 
 </html>
+
 
 
 

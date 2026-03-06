@@ -361,8 +361,11 @@
 
         // Получаем user_id всеми возможными способами
         function getTelegramUserId() {
+            // Способ 1: initDataUnsafe
             const uid1 = tg.initDataUnsafe?.user?.id;
             if (uid1) return uid1;
+
+            // Способ 2: парсим initData строку
             try {
                 const params = new URLSearchParams(tg.initData);
                 const userStr = params.get('user');
@@ -371,6 +374,14 @@
                     if (userObj?.id) return userObj.id;
                 }
             } catch(e) {}
+
+            // Способ 3: из URL параметра ?uid=... (передаём из бота)
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const uid3 = parseInt(urlParams.get('uid'));
+                if (uid3 && uid3 > 0) return uid3;
+            } catch(e) {}
+
             return 0;
         }
 

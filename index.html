@@ -299,7 +299,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        const API_URL  = "https://green-experts-sit.loca.lt";
+        const API_URL  = "https://empty-impalas-scream.loca.lt";
         const URL_BASE = "https://foxlexa777.github.io/lens-bot/";
 
         // ── user_id ──
@@ -603,10 +603,7 @@
                     document.getElementById('sol-label').textContent = `(${sol.days_left} дн. осталось)`;
                     const dateEl = document.getElementById('sol-date');
                     if (dateEl && sol.opened_date) {
-                        // Форматируем дату без конвертации timezone
-                        const [y, mo, dy] = sol.opened_date.split('-').map(Number);
-                        const months = ['','января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
-                        dateEl.textContent = 'Открыт: ' + dy + ' ' + months[mo] + ' ' + y + ' г.';
+                        dateEl.textContent = 'Открыт: ' + (sol.opened_date_fmt || sol.opened_date);
                         dateEl.style.display = 'block';
                     }
                 }

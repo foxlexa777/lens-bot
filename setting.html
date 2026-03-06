@@ -240,21 +240,21 @@
         <button id="solution-btn" class="solution-btn">🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН</button>
     </div>
     
-    <span class="section-label">Уведомления</span>
+    <span class="section-label">Уведомления о остатке линз</span>
     <div class="card">
         <div class="eye-row">
             <div class="input-group">
                 <span class="field-label">Напомнить за (дн)</span>
-                <input type="number" id="remind-before" value="0">
+                <input type="number" id="remind-before" value="1">
             </div>
             <div class="input-group">
                 <span class="field-label">Время уведомл.</span>
-                <input type="time" id="notify-time" value="16:30">
+                <input type="time" id="notify-time" value="10:00">
             </div>
         </div>
         <div class="input-group" style="margin-bottom: 0;">
             <span class="field-label">Порог запаса (напомнить купить < шт)</span>
-            <input type="number" id="stock-threshold" value="2">
+            <input type="number" id="stock-threshold" value="1">
         </div>
     </div>
 
@@ -265,7 +265,6 @@
 <div class="settings-card">
     <div class="mode-row" style="align-items: center;">
         <div class="schedule-info" style="flex: 1;">
-            <div class="schedule-icon">🔔</div>
             <div class="schedule-text-block">
                 <span class="schedule-title">Умные напоминания</span>
                 <span class="schedule-sub" style="display: block; margin-top: 2px;">Помогают не перенашивать линзы</span>
@@ -327,6 +326,9 @@
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" }).show();
+        // Вызываем один раз при загрузке страницы
+        toggleReminderFields();
+        toggleWeekendField();
 
         // Логика кнопки раствора
         let solActive = false;
@@ -352,49 +354,27 @@
                 visionCard.classList.remove('show-astigmatism');
             }
         });
-        // Вызываем один раз при загрузке страницы
-toggleReminderFields();
-toggleWeekendField();
 
-function toggleReminderFields() {
-    const isActive = document.getElementById('reminders-active').checked;
-    document.getElementById('reminder-settings').style.display = isActive ? 'block' : 'none';
-    document.getElementById('info-note').style.display = isActive ? 'block' : 'none';
-}
 
-function toggleWeekendField() {
-    const isManual = document.getElementById('weekend-manual').checked;
-    const timeRow = document.getElementById('weekend-time-row');
-    const timeInput = document.getElementById('time-weekend');
-    
-    if (isManual) {
-        timeRow.style.opacity = '0.3';
-        timeInput.disabled = true;
-    } else {
-        timeRow.style.opacity = '1';
-        timeInput.disabled = false;
-    }
-}
-        
         function toggleReminderFields() {
-    const isActive = document.getElementById('reminders-active').checked;
-    document.getElementById('reminder-settings').style.display = isActive ? 'block' : 'none';
-}
-
-function toggleWeekendField() {
-    const isManual = document.getElementById('weekend-manual').checked;
-    const timeRow = document.getElementById('weekend-time-row');
-    const timeInput = document.getElementById('time-weekend');
-    
-    if (isManual) {
-        timeRow.style.opacity = '0.3';
-        timeInput.disabled = true;
-    } else {
-        timeRow.style.opacity = '1';
-        timeInput.disabled = false;
-    }
-}
+            const isActive = document.getElementById('reminders-active').checked;
+            document.getElementById('reminder-settings').style.display = isActive ? 'block' : 'none';
+            document.getElementById('info-note').style.display = isActive ? 'block' : 'none';
+        }
         
+        function toggleWeekendField() {
+            const isManual = document.getElementById('weekend-manual').checked;
+            const timeRow = document.getElementById('weekend-time-row');
+            const timeInput = document.getElementById('time-weekend');
+            
+            if (isManual) {
+                timeRow.style.opacity = '0.3';
+                timeInput.disabled = true;
+            } else {
+                timeRow.style.opacity = '1';
+                timeInput.disabled = false;
+            }
+        }
 
         // Сбор данных и отправка в бота
        tg.onEvent('mainButtonClicked', function() {
@@ -436,6 +416,7 @@ function toggleWeekendField() {
 </body>
 
 </html>
+
 
 
 

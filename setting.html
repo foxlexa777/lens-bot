@@ -258,14 +258,17 @@
         <button id="solution-btn" class="solution-btn">🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН</button>
     </div>
                 
+
 <span class="section-label">Контроль ношения</span>
 <div class="settings-card">
-    <div class="mode-row">
+    <div class="mode-row" style="align-items: flex-start;">
         <div class="schedule-info" style="flex: 1;">
             <div class="schedule-icon">🔔</div>
             <div class="schedule-text-block">
                 <span class="schedule-title">Умные напоминания</span>
-                <span class="schedule-sub">Помогают не перенашивать линзы</span>
+                <span class="schedule-sub" style="display: block; margin-top: 4px;">
+                    Помогают не перенашивать линзы
+                </span>
             </div>
         </div>
         <label class="switch">
@@ -274,22 +277,22 @@
         </label>
     </div>
 
-    <div class="info-note" style="background: rgba(0, 122, 255, 0.1); border-radius: 12px; padding: 12px; margin-top: 12px;">
+    <div id="info-note" style="background: rgba(0, 122, 255, 0.1); border-radius: 12px; padding: 12px; margin-top: 12px;">
         <p style="font-size: 12px; color: #58a6ff; margin: 0; line-height: 1.4;">
-            ℹ️ <b>Важно:</b> Срок замены уменьшается только когда вы нажимаете <b>«Надел»</b>. Если сегодня вы в очках — просто не нажимайте кнопку, и ресурс линз сохранится.
+            ℹ️ <b>Как это работает:</b> Срок годности линз убывает автоматически. Если сегодня вы решили пойти <b>в очках</b> — отметьте это в боте, чтобы сохранить ресурс дней.
         </p>
     </div>
 
     <div id="reminder-settings">
         <hr>
         <div class="schedule-row" style="display: flex; align-items: center;">
-            <div class="schedule-info" style="width: 70%;">
+            <div class="schedule-info" style="width: 60%;">
                 <div class="schedule-text-block">
                     <span class="schedule-title">Будни (Пн-Пт)</span>
-                    <span class="schedule-sub">Когда напомнить надеть?</span>
+                    <span class="schedule-sub" style="display: block; margin-top: 4px;">Когда напомнить надеть?</span>
                 </div>
             </div>
-            <div style="width: 30%; display: flex; justify-content: flex-end;">
+            <div style="width: 40%; display: flex; justify-content: flex-end;">
                 <input type="time" id="time-work" class="time-input-styled" value="08:00" style="width: 85px;">
             </div>
         </div>
@@ -300,12 +303,12 @@
             <span class="schedule-title">Выходные (Сб-Вс)</span>
         </div>
         
-        <div class="mode-row" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px;">
-            <div class="schedule-text-block" style="width: 70%;">
+        <div class="mode-row" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; align-items: center;">
+            <div class="schedule-text-block" style="width: 60%;">
                 <span class="schedule-title" style="font-size: 14px;">Ручной режим</span>
-                <span class="schedule-sub">Без авто-уведомлений</span>
+                <span class="schedule-sub" style="display: block; margin-top: 4px;">Без авто-уведомлений</span>
             </div>
-            <div style="width: 30%; display: flex; justify-content: flex-end;">
+            <div style="width: 40%; display: flex; justify-content: flex-end;">
                 <label class="switch">
                     <input type="checkbox" id="weekend-manual" onchange="toggleWeekendField()">
                     <span class="slider"></span>
@@ -314,10 +317,10 @@
         </div>
 
         <div id="weekend-time-row" class="schedule-row" style="margin-top: 10px; display: flex; align-items: center;">
-            <div class="schedule-info" style="width: 70%;">
-                <span class="schedule-sub">Напомнить в выходной в:</span>
+            <div class="schedule-info" style="width: 60%;">
+                <span class="schedule-sub">Напомнить в:</span>
             </div>
-            <div style="width: 30%; display: flex; justify-content: flex-end;">
+            <div style="width: 40%; display: flex; justify-content: flex-end;">
                 <input type="time" id="time-weekend" class="time-input-styled" value="10:00" style="width: 85px;">
             </div>
         </div>
@@ -418,6 +421,7 @@ function toggleWeekendField() {
 </body>
 
 </html>
+
 
 
 

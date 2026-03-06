@@ -205,6 +205,10 @@
         </div>
         <div class="progress-bg"><div id="sol-fill" class="progress-fill"></div></div>
         <div id="sol-date" style="font-size:11px;color:var(--hint-color);margin-top:7px;display:none">Открыт: —</div>
+        <div style="font-size:11px;color:var(--hint-color);margin-top:8px;line-height:1.5;border-top:1px solid var(--border);padding-top:8px;">
+            💡 Открытый флакон безопасен не более <b style="color:var(--text-color)">90 дней</b>.
+            Нажмите «ОБНОВИЛ» когда откроете новый флакон.
+        </div>
     </div>
 
     <div class="stock-card">
@@ -230,9 +234,7 @@
         <a href="#" class="buy-link">🛒 Купить линзы</a>
     </div>
 
-    <div class="tip-box">
-        💡 Помните: Каждые 15 минут делайте перерыв, глядя вдаль.
-    </div>
+    <div class="tip-box" id="tip-box">💡 …</div>
 
     <div class="empty-state" id="empty-state">
         <div class="empty-icon">👁‍🗨</div>
@@ -375,6 +377,7 @@
             document.getElementById('card-l').classList.toggle('inactive', glassesOn);
             document.getElementById('card-r').classList.toggle('inactive', glassesOn);
             document.getElementById('action-area').style.display = glassesOn ? 'none' : 'block';
+            updateTopStatus();
             // Если включили очки — снимаем линзы и пишем removed
             if (glassesOn && lensesWorn) {
                 lensesWorn = false;
@@ -414,6 +417,53 @@
             api(`/api/solution/reset/${uid}`);
         };
 
+        // ── Верхний статус ──
+        window._statusData = null;
+        function updateTopStatus() {
+            const el = document.getElementById('top-status');
+            if (!el || !window._statusData) return;
+            if (glassesOn) {
+                el.innerHTML = '👓 Сегодня вы <b style="color:var(--accent-orange)">в очках</b> • линзы отдыхают';
+                return;
+            }
+            const { daysL, daysR, continuous } = window._statusData;
+            const worn   = duration - Math.max(daysL, daysR);
+            const dayNum = Math.max(1, worn);
+            const mode   = continuous ? 'Пролонгированный режим' : 'Дневной режим';
+            el.innerHTML = `Сегодня <b>${dayNum}-й&nbsp;день</b> носки • ${mode}`;
+        }
+
+        // ── Случайные подсказки ──
+        const TIPS = [
+            "Каждые 45–60 минут давайте глазам отдых — смотрите вдаль 20 секунд.",
+            "Никогда не спите в однодневных линзах — это повышает риск инфекции в 6–8 раз.",
+            "Мойте руки перед установкой и снятием линз — это правило №1.",
+            "Не используйте водопроводную воду для хранения линз — только раствор.",
+            "Если глаза красные или болят — снимите линзы и дайте глазам отдохнуть.",
+            "Открытый флакон раствора живёт не более 90 дней, даже если он не опустел.",
+            "Капли для увлажнения должны быть совместимы с линзами — проверяйте маркировку.",
+            "Не надевайте линзы сразу после душа — в воде могут быть микроорганизмы.",
+            "Линзы с истёкшим сроком замены повышают риск кератита — меняйте вовремя.",
+            "Максимальное время ношения мягких линз — 12–16 часов в день.",
+            "При авиаперелётах используйте увлажняющие капли — в самолёте очень сухой воздух.",
+            "Контейнер для линз нужно заменять каждые 3 месяца.",
+            "Не протирайте линзы — только споласкивайте в растворе круговыми движениями.",
+            "При работе за компьютером моргайте чаще — это предотвращает сухость.",
+            "Правило 20-20-20: каждые 20 минут смотрите 20 секунд на объект в 6 метрах.",
+            "Хранение линз в водопроводной воде может вызвать акантамёбный кератит.",
+            "Если линза складывается при установке — не трите глаз, промойте раствором.",
+            "При ОРВИ лучше перейти на очки — в линзах выше риск бактериальных осложнений.",
+            "УФ-защита в линзах не заменяет солнцезащитные очки — они защищают разные зоны.",
+            "Запас линз рекомендуется держать минимум на 2–3 пары про запас.",
+        ];
+        function showRandomTip() {
+            const el = document.getElementById('tip-box');
+            if (!el) return;
+            const t = TIPS[Math.floor(Math.random() * TIPS.length)];
+            el.innerHTML = '💡 ' + t;
+        }
+        showRandomTip();
+
         // ── Загрузка ──
         async function loadData() {
             if (!uid) { removeSkeletons(); document.getElementById('empty-state').style.display = 'flex'; return; }
@@ -438,12 +488,9 @@
                 const brand = (d.brand && d.brand !== 'Не указан') ? d.brand : 'Линзы';
                 document.getElementById('brand-sub').textContent = `${brand} • ${duration} дней`;
 
-                // Статус
-                const worn   = duration - Math.max(daysL, daysR);
-                const dayNum = Math.max(1, worn);
-                const mode   = d.continuous_mode ? 'Пролонгированный режим' : 'Дневной режим';
-                document.getElementById('top-status').innerHTML =
-                    `Сегодня <b>${dayNum}-й&nbsp;день</b> носки • ${mode}`;
+                // Статус — обновляется и при переключении очков
+                window._statusData = { daysL, daysR, continuous: d.continuous_mode };
+                updateTopStatus();
 
                 // Кольца
                 setRing('l', daysL, duration);
@@ -482,7 +529,8 @@
                     document.getElementById('sol-label').textContent = `(${sol.days_left} дн. осталось)`;
                     const dateEl = document.getElementById('sol-date');
                     if (dateEl && sol.opened_date) {
-                        const dt = new Date(sol.opened_date);
+                        // Парсим дату без timezone-сдвига (добавляем T12:00 чтобы избежать UTC-полночь)
+                        const dt = new Date(sol.opened_date + 'T12:00:00');
                         dateEl.textContent = 'Открыт: ' + dt.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
                         dateEl.style.display = 'block';
                     }
@@ -496,6 +544,7 @@
                     document.getElementById('card-l').classList.add('inactive');
                     document.getElementById('card-r').classList.add('inactive');
                     document.getElementById('action-area').style.display = 'none';
+                    updateTopStatus();
                 }
 
                 // ── Восстанавливаем состояние надевания (только если не в очках) ──
@@ -524,4 +573,3 @@
     </script>
 </body>
 </html>
-

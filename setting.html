@@ -257,66 +257,59 @@
         <span class="solution-desc">Открытый флакон с раствором безопасен не более 90 дней. Отметьте, чтобы бот напомнил вам о его замене.</span>
         <button id="solution-btn" class="solution-btn">🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН</button>
     </div>
-
-<span class="section-label">Автоматический учет</span>
+                
+  <span class="section-label">Уведомления</span>
 <div class="settings-card">
     <div class="mode-row">
         <div class="schedule-info">
-            <div class="schedule-icon">🤖</div>
+            <div class="schedule-icon">🔔</div>
             <div class="schedule-text-block">
-                <span class="schedule-title">Умный трекинг</span>
-                <span class="schedule-sub">Авто-списание линз из запаса</span>
+                <span class="schedule-title">Напоминания</span>
+                <span class="schedule-sub">Присылать уведомления в Телеграм</span>
             </div>
         </div>
         <label class="switch">
-            <input type="checkbox" id="auto-mode" checked>
+            <input type="checkbox" id="reminders-active" checked onchange="toggleReminderFields()">
             <span class="slider"></span>
         </label>
     </div>
 
-    <hr>
-
-    <div class="schedule-row">
-        <div class="schedule-info">
-            <div class="schedule-icon">💼</div>
-            <div class="schedule-text-block">
+    <div id="reminder-settings">
+        <hr>
+        <div class="schedule-row">
+            <div class="schedule-info">
                 <span class="schedule-title">Будни (Пн-Пт)</span>
-                <span class="schedule-sub">Надеваю в это время</span>
             </div>
+            <input type="time" id="time-work" class="time-input-styled" value="08:00">
         </div>
-        <input type="time" id="time-wear-work" class="time-input-styled" value="08:00">
-    </div>
 
-    <hr>
+        <hr>
 
-    <div class="schedule-row">
-        <div class="schedule-info">
-            <div class="schedule-icon">☕</div>
-            <div class="schedule-text-block">
+        <div class="schedule-row">
+            <div class="schedule-info">
                 <span class="schedule-title">Выходные (Сб-Вс)</span>
-                <select id="weekend-mode" class="select-styled" style="margin-top: 4px; padding: 2px 5px; font-size: 11px; width: auto;">
-                    <option value="auto">Автоматически</option>
-                    <option value="manual" selected>Вручную</option>
+            </div>
+            <div class="select-wrapper">
+                <select id="weekend-mode" class="select-styled" onchange="checkWeekendStatus()">
+                    <option value="manual">🔔 Только вручную</option>
+                    <option value="09:00">⏰ В 09:00</option>
+                    <option value="10:00" selected>⏰ В 10:00</option>
+                    <option value="11:00">⏰ В 11:00</option>
                 </select>
             </div>
         </div>
-        <input type="time" id="time-wear-weekend" class="time-input-styled" value="10:00" style="opacity: 0.5;">
-    </div>
 
-    <hr>
+        <hr>
 
-    <div class="schedule-row">
-        <div class="schedule-info">
-            <div class="schedule-icon">🌙</div>
-            <div class="schedule-text-block">
-                <span class="schedule-title">Завершение дня</span>
-                <span class="schedule-sub">Снимаю обычно в</span>
+        <div class="schedule-row">
+            <div class="schedule-info">
+                <span class="schedule-title">Вечер</span>
+                <span class="schedule-sub">Пора снять</span>
             </div>
+            <input type="time" id="time-remove" class="time-input-styled" value="22:30">
         </div>
-        <input type="time" id="time-remove" class="time-input-styled" value="23:00">
     </div>
 </div>
-                
                 
     
 </div>
@@ -391,6 +384,7 @@
 </body>
 
 </html>
+
 
 
 

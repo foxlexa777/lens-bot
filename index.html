@@ -244,7 +244,7 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        const API_URL  = "https://slick-clouds-return.loca.lt";
+        const API_URL  = "https://hungry-ties-stay.loca.lt";
         const URL_BASE = "https://foxlexa777.github.io/lens-bot/";
 
         // ── user_id ──
@@ -404,9 +404,8 @@
         // ── Раствор ──
         document.getElementById('sol-reset').onclick = function () {
             document.getElementById('sol-fill').style.width = '100%';
-            const pct = 100;
-            // «0 дней использования из 90» = только что открыли
-            document.getElementById('sol-label').textContent = '(0/90 дн.)';
+            document.getElementById('sol-fill').style.background = 'var(--accent-blue)';
+            document.getElementById('sol-label').textContent = '(90 дн. осталось)';
             const dateEl = document.getElementById('sol-date');
             if (dateEl) {
                 dateEl.textContent = 'Открыт: ' + new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -474,10 +473,13 @@
                 // Раствор
                 if (d.solution) {
                     const sol = d.solution;
-                    console.log('solution from DB:', JSON.stringify(sol));
-                    const pct = Math.round((sol.days_used / sol.max_days) * 100);
-                    setTimeout(() => { document.getElementById('sol-fill').style.width = pct + '%'; }, 100);
-                    document.getElementById('sol-label').textContent = `(${sol.days_used}/${sol.max_days} дн.)`;
+                    // pct = сколько ОСТАЛОСЬ (полная шкала = свежий раствор)
+                    const pct = Math.round((sol.days_left / sol.max_days) * 100);
+                    const fillColor = pct > 50 ? 'var(--accent-blue)' : pct > 20 ? 'var(--accent-orange)' : 'var(--accent-red)';
+                    const fillEl = document.getElementById('sol-fill');
+                    fillEl.style.background = fillColor;
+                    setTimeout(() => { fillEl.style.width = pct + '%'; }, 100);
+                    document.getElementById('sol-label').textContent = `(${sol.days_left} дн. осталось)`;
                     const dateEl = document.getElementById('sol-date');
                     if (dateEl && sol.opened_date) {
                         const dt = new Date(sol.opened_date);
@@ -486,14 +488,23 @@
                     }
                 }
 
-                // Восстанавливаем состояние надевания
-                if (d.last_worn) {
+                // ── Восстанавливаем состояние "сегодня в очках" ──
+                if (d.last_glasses_today) {
+                    glassesOn = true;
+                    const gl = document.getElementById('gl-btn');
+                    gl.classList.add('active');
+                    document.getElementById('card-l').classList.add('inactive');
+                    document.getElementById('card-r').classList.add('inactive');
+                    document.getElementById('action-area').style.display = 'none';
+                }
+
+                // ── Восстанавливаем состояние надевания (только если не в очках) ──
+                if (!glassesOn && d.last_worn) {
                     const wornTime    = new Date(d.last_worn + 'Z').getTime();
                     const removedTime = d.last_removed ? new Date(d.last_removed + 'Z').getTime() : 0;
                     const now         = Date.now();
                     const sameDay     = new Date(wornTime).toDateString() === new Date(now).toDateString();
                     const hrs         = (now - wornTime) / 36e5;
-                    // Надеты: сегодня, < 18ч назад, и снятие не было ПОСЛЕ надевания
                     if (sameDay && hrs < 18 && wornTime > removedTime) {
                         lensesWorn = true;
                         const btn = document.getElementById('wear-btn');

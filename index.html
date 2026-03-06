@@ -33,7 +33,7 @@
         .brand-sub { font-size: 13px; color: var(--accent-blue); font-weight: 500; margin-bottom: 16px; display: block; min-height: 18px; }
 
         /* Верхний статус */
-        .top-status { text-align: center; font-size: 14px; color: var(--hint-color); margin-bottom: 16px; padding: 8px; background: rgba(255,255,255,0.03); border-radius: 12px; min-height: 36px; display: flex; align-items: center; justify-content: center; }
+        .top-status { text-align: center; font-size: 14px; color: var(--hint-color); margin-bottom: 8px; padding: 6px 8px; background: rgba(255,255,255,0.03); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
         .top-status b { color: var(--accent-blue); }
 
         /* Кольца */
@@ -242,7 +242,7 @@
         tg.expand();
 
         // ⚠️ ЗАМЕНИ НА АКТУАЛЬНЫЙ URL ОТ LOCALTUNNEL
-        const API_URL = "https://slick-clouds-return.loca.lt/";
+        const API_URL = "https://slick-clouds-return.loca.lt";
         const URL_BASE = "https://foxlexa777.github.io/lens-bot/";
 
         let stockL = 0, stockR = 0, threshold = 2, duration = 14;
@@ -387,9 +387,32 @@
                 // Запас
                 updateStockDisplay();
 
-                // Раствор
-                document.getElementById('sol-fill').style.width = '50%';
-                document.getElementById('sol-label').textContent = '(45/90 дн.)';
+                // Раствор из БД
+                if (d.solution) {
+                    const sol = d.solution;
+                    const pct = Math.round((sol.days_used / sol.max_days) * 100);
+                    setTimeout(() => {
+                        document.getElementById('sol-fill').style.width = pct + '%';
+                    }, 100);
+                    document.getElementById('sol-label').textContent =
+                        `(${sol.days_used}/${sol.max_days} дн.)`;
+                } else {
+                    document.getElementById('sol-label').textContent = '(нет данных)';
+                }
+
+                // Восстанавливаем состояние "надеты" если последнее событие — worn
+                if (d.last_worn) {
+                    const wornTime = new Date(d.last_worn + 'Z');
+                    const now = new Date();
+                    const hoursSince = (now - wornTime) / 36e5;
+                    // Считаем "надеты" если надел сегодня и прошло < 18 часов
+                    if (hoursSince < 18 && wornTime.toDateString() === now.toDateString()) {
+                        lensesWorn = true;
+                        const btn = document.getElementById('wear-btn');
+                        btn.classList.add('active');
+                        btn.innerHTML = '✅ ЛИНЗЫ НАДЕТЫ';
+                    }
+                }
 
             } catch(e) {
                 console.error('loadData error:', e);
@@ -423,8 +446,101 @@
         };
 
         loadData();
+
+        // ─────────────────────────────────────────
+        // API-хелпер
+        async function api(path, method='POST', body=null) {
+            const opts = {
+                method,
+                headers: { 'bypass-tunnel-reminder': 'true', 'Content-Type': 'application/json' }
+            };
+            if (body) opts.body = JSON.stringify(body);
+            try {
+                const r = await fetch(`${API_URL}${path}`, opts);
+                return await r.json();
+            } catch(e) {
+                console.error('API error', path, e);
+                return null;
+            }
+        }
+
+        // ── Замена линз ──
+        async function replaceLens(eye) {
+            const res = await api(`/api/replace/${uid}/${eye}`);
+            if (!res || res.status !== 'ok') return;
+            // Обновляем кольца и запас из ответа
+            if (res.stock) {
+                if (res.stock.left)  {
+                    const d = res.stock.left;
+                    setRing('bar-l', 'ring-text-l', d.days_left ?? duration, duration);
+                    stockL = d.stock ?? stockL;
+                }
+                if (res.stock.right) {
+                    const d = res.stock.right;
+                    setRing('bar-r', 'ring-text-r', d.days_left ?? duration, duration);
+                    stockR = d.stock ?? stockR;
+                }
+                updateStockDisplay();
+            }
+            // Визуальная вспышка на кнопке
+            const btnMap = { left: 'btn-replace-l', right: 'btn-replace-r', both: 'btn-replace-both' };
+            const btn = document.getElementById(btnMap[eye]);
+            if (btn) {
+                const orig = btn.style.background;
+                btn.style.background = 'var(--accent-green)';
+                setTimeout(() => btn.style.background = orig, 800);
+            }
+        }
+
+        document.getElementById('btn-replace-l').onclick    = () => replaceLens('left');
+        document.getElementById('btn-replace-r').onclick    = () => replaceLens('right');
+        document.getElementById('btn-replace-both').onclick = () => replaceLens('both');
+
+        // ── Надеть / снять линзы ──
+        let lensesWorn = false;
+        document.getElementById('wear-btn').onclick = async function() {
+            lensesWorn = !lensesWorn;
+            if (lensesWorn) {
+                await api(`/api/wear/${uid}`);
+                this.classList.add('active');
+                this.innerHTML = '✅ ЛИНЗЫ НАДЕТЫ';
+            } else {
+                await api(`/api/remove/${uid}`);
+                this.classList.remove('active');
+                this.innerHTML = '👁️ НАДЕТЬ ЛИНЗЫ';
+            }
+        };
+
+        // ── Сегодня в очках ──
+        let glassesOn = false;
+        document.getElementById('gl-btn').onclick = async function() {
+            glassesOn = !glassesOn;
+            await api(`/api/glasses/${uid}`, 'POST', { active: glassesOn });
+            this.classList.toggle('active', glassesOn);
+            document.getElementById('card-l').classList.toggle('inactive', glassesOn);
+            document.getElementById('card-r').classList.toggle('inactive', glassesOn);
+            document.getElementById('action-area').style.display = glassesOn ? 'none' : 'block';
+        };
+
+        // ── Раствор: обновил ──
+        document.getElementById('sol-reset').onclick = async function() {
+            const res = await api(`/api/solution/reset/${uid}`);
+            if (res && res.status === 'ok') {
+                document.getElementById('sol-fill').style.width = '100%';
+                document.getElementById('sol-label').textContent = '(0/90 дн.)';
+            }
+        };
+
+        // ── Запас +/- ──
+        async function changeStock(side, delta) {
+            const eye = side === 'l' ? 'left' : 'right';
+            const res = await api(`/api/stock/${uid}/${eye}/${delta}`);
+            if (res && res.status === 'ok') {
+                if (side === 'l') stockL = res.stock;
+                else              stockR = res.stock;
+                updateStockDisplay();
+            }
+        }
     </script>
 </body>
 </html>
-
-

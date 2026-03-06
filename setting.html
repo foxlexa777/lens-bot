@@ -147,6 +147,37 @@
         #save-status.success { background: rgba(52, 199, 89, 0.15); color: #34c759; }
         #save-status.error { background: rgba(255, 69, 58, 0.15); color: #ff453a; }
         #save-status.loading { background: rgba(0, 122, 255, 0.1); color: #007aff; }
+
+        /* ===== СКЕЛЕТОНЫ ===== */
+        @keyframes shimmer {
+            0%   { background-position: -400px 0; }
+            100% { background-position:  400px 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%);
+            background-size: 400px 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+            color: transparent !important;
+            pointer-events: none;
+            user-select: none;
+        }
+        .skeleton * { visibility: hidden; }
+        .skeleton-input {
+            height: 44px;
+            border-radius: 10px;
+            margin-bottom: 4px;
+        }
+        .skeleton-toggle {
+            width: 50px; height: 28px;
+            border-radius: 34px;
+            flex-shrink: 0;
+        }
+        /* прячем реальные inputs пока грузим */
+        .loading-data input,
+        .loading-data select {
+            visibility: hidden;
+        }
     </style>
 </head>
 <body>
@@ -162,7 +193,7 @@
     <div id="save-status"></div>
 
     <span class="section-label">Ваши линзы</span>
-    <div class="card">
+    <div class="card loading-data">
         <div class="input-group">
             <span class="field-label">Бренд и модель</span>
             <div class="select-wrapper">
@@ -207,7 +238,7 @@
     </div>
 
     <span class="section-label">Параметры зрения</span>
-    <div class="card" id="vision-card">
+    <div class="card loading-data" id="vision-card">
         
         <div class="mode-row" style="margin-bottom: 15px;">
             <div>
@@ -267,13 +298,13 @@
     </div>
 
     <span class="section-label">Уход за линзами</span>
-    <div class="card">
+    <div class="card loading-data">
         <span class="solution-desc">Открытый флакон с раствором безопасен не более 90 дней. Отметьте, чтобы бот напомнил вам о его замене.</span>
         <button id="solution-btn" class="solution-btn">🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН</button>
     </div>
 
     <span class="section-label">Замена и покупки</span>
-    <div class="card">
+    <div class="card loading-data">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Замена текущей пары</div>
         <div class="eye-row">
             <div class="input-group">
@@ -296,7 +327,7 @@
     </div>
 
     <span class="section-label">Ежедневный контроль</span>
-    <div class="card">
+    <div class="card loading-data">
         <div class="mode-row" style="align-items: center; padding: 0;">
             <div class="schedule-info" style="flex: 1;">
                 <div class="schedule-text-block">
@@ -384,6 +415,114 @@
 
             return 0;
         }
+
+        // ===== СКЕЛЕТОНЫ И ЗАГРУЗКА ДАННЫХ =====
+
+        function showSkeletons() {
+            // Добавляем скелетон-заглушки поверх каждого input/select
+            document.querySelectorAll('.loading-data input, .loading-data select').forEach(el => {
+                if (el.closest('.astigmatism-field')) return; // скрытые поля пропускаем
+                const sk = document.createElement('div');
+                sk.className = 'skeleton skeleton-input';
+                sk.dataset.skeletonFor = el.id || Math.random();
+                el.parentNode.insertBefore(sk, el);
+                el.style.marginTop = '-48px'; // перекрываем
+                el.style.opacity = '0';
+            });
+            // Скелетоны для тогглов
+            document.querySelectorAll('.loading-data .switch').forEach(sw => {
+                sw.style.visibility = 'hidden';
+                const sk = document.createElement('div');
+                sk.className = 'skeleton skeleton-toggle';
+                sk.style.display = 'inline-block';
+                sw.parentNode.insertBefore(sk, sw);
+            });
+        }
+
+        function hideSkeletons() {
+            document.querySelectorAll('.skeleton').forEach(sk => sk.remove());
+            document.querySelectorAll('.loading-data input, .loading-data select').forEach(el => {
+                el.style.marginTop = '';
+                el.style.opacity = '';
+            });
+            document.querySelectorAll('.loading-data .switch').forEach(sw => {
+                sw.style.visibility = '';
+            });
+            document.querySelectorAll('.loading-data').forEach(el => {
+                el.classList.remove('loading-data');
+            });
+        }
+
+        async function loadSettings() {
+            const uid = getTelegramUserId();
+            if (!uid) { hideSkeletons(); return; }
+
+            try {
+                const resp = await fetch(`${API_URL}/api/get_settings/${uid}`, {
+                    headers: { 'bypass-tunnel-reminder': 'true' }
+                });
+                const d = await resp.json();
+                if (d.status !== 'ok') { hideSkeletons(); return; }
+
+                // Бренд
+                const brandEl = document.getElementById('lens-brand');
+                if (d.brand) {
+                    [...brandEl.options].forEach(o => { if (o.value === d.brand) o.selected = true; });
+                }
+
+                // Основные поля
+                if (d.left?.duration)  document.getElementById('duration').value   = d.left.duration;
+                if (d.left?.days_left !== undefined) document.getElementById('days-left').value  = d.left.days_left;
+                if (d.left?.bc || d.bc) document.getElementById('bc-all').value    = d.bc || d.left.bc;
+
+                // Левый глаз
+                if (d.left?.pwr   !== undefined) document.getElementById('pwr-left').value   = d.left.pwr;
+                if (d.left?.stock !== undefined) document.getElementById('stock-left').value  = d.left.stock;
+                if (d.left?.cyl   !== null && d.left?.cyl !== undefined) {
+                    document.getElementById('cyl-left').value  = d.left.cyl;
+                    document.getElementById('axis-left').value = d.left.axis;
+                }
+
+                // Правый глаз
+                if (d.right?.pwr   !== undefined) document.getElementById('pwr-right').value  = d.right.pwr;
+                if (d.right?.stock !== undefined) document.getElementById('stock-right').value = d.right.stock;
+                if (d.right?.cyl   !== null && d.right?.cyl !== undefined) {
+                    document.getElementById('cyl-right').value  = d.right.cyl;
+                    document.getElementById('axis-right').value = d.right.axis;
+                }
+
+                // Включаем астигматизм если есть cyl
+                if (d.left?.cyl !== null && d.left?.cyl !== undefined) {
+                    document.getElementById('astigmatism-mode').checked = true;
+                    document.getElementById('vision-card').classList.add('show-astigmatism');
+                }
+
+                // Напоминания
+                if (d.remind_before !== undefined) document.getElementById('remind-before').value  = d.remind_before;
+                if (d.notify_time)                 document.getElementById('notify-time').value    = d.notify_time;
+                if (d.stock_threshold !== undefined) document.getElementById('stock-threshold').value = d.stock_threshold;
+
+                // Переключатели
+                document.getElementById('continuous-mode').checked  = d.continuous_mode  ?? false;
+                document.getElementById('reminders-active').checked = d.reminders_active ?? true;
+                document.getElementById('weekend-manual').checked   = d.weekend_manual   ?? false;
+                if (d.time_work)    document.getElementById('time-work').value    = d.time_work;
+                if (d.time_weekend) document.getElementById('time-weekend').value = d.time_weekend;
+
+                // Обновляем зависимые UI
+                toggleReminderFields();
+                toggleWeekendField();
+
+            } catch(e) {
+                console.error('Ошибка загрузки настроек:', e);
+            } finally {
+                hideSkeletons();
+            }
+        }
+
+        // Запускаем
+        showSkeletons();
+        loadSettings();
 
         toggleReminderFields();
         toggleWeekendField();

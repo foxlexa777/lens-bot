@@ -286,13 +286,13 @@
     <div id="reminder-settings">
         <hr>
         <div class="schedule-row" style="display: flex; align-items: center;">
-            <div class="schedule-info" style="width: 60%;">
+            <div class="schedule-info">
                 <div class="schedule-text-block">
                     <span class="schedule-title">Будни (Пн-Пт)</span>
                     <span class="schedule-sub" style="display: block; margin-top: 4px;">Когда напомнить надеть?</span>
                 </div>
             </div>
-            <div style="width: 40%; display: flex; justify-content: flex-end;">
+            <div style="display: flex; justify-content: flex-end;">
                 <input type="time" id="time-work" class="time-input-styled" value="08:00" style="width: 85px;">
             </div>
         </div>
@@ -304,7 +304,7 @@
         </div>
         
         <div class="mode-row" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; align-items: center;">
-            <div class="schedule-text-block" style="width: 50%;">
+            <div class="schedule-text-block">
                 <span class="schedule-title" style="font-size: 14px;">Ручной режим</span>
                 <span class="schedule-sub" style="display: block; margin-top: 4px;">Без авто-уведомлений</span>
             </div>
@@ -317,10 +317,10 @@
         </div>
 
         <div id="weekend-time-row" class="schedule-row" style="margin-top: 10px; display: flex; align-items: center;">
-            <div class="schedule-info" style="width: 50%;">
+            <div class="schedule-info">
                 <span class="schedule-sub">Напомнить в:</span>
             </div>
-            <div style="width: 50%; display: flex; justify-content: flex-end;">
+            <div style="display: flex; justify-content: flex-end;">
                 <input type="time" id="time-weekend" class="time-input-styled" value="10:00" style="width: 85px;">
             </div>
         </div>
@@ -360,7 +360,35 @@
                 visionCard.classList.remove('show-astigmatism');
             }
         });
+        // Вызываем один раз при загрузке страницы
+toggleReminderFields();
+toggleWeekendField()
+function toggleReminderFields() {
+    const isActive = document.getElementById('reminders-active').checked;
+    
+    // Скрываем/показываем настройки времени
+    document.getElementById('reminder-settings').style.display = isActive ? 'block' : 'none';
+    
+    // Скрываем/показываем блок "Важно" только при включенных уведомлениях
+    document.getElementById('info-note').style.display = isActive ? 'block' : 'none';
+}
 
+function toggleWeekendField() {
+    const isManual = document.getElementById('weekend-manual').checked;
+    const timeRow = document.getElementById('weekend-time-row');
+    const timeInput = document.getElementById('time-weekend');
+    
+    if (isManual) {
+        timeRow.style.opacity = '0.3';
+        timeInput.disabled = true;
+    } else {
+        timeRow.style.opacity = '1';
+        timeInput.disabled = false;
+    }
+}
+
+;
+        
         function toggleReminderFields() {
     const isActive = document.getElementById('reminders-active').checked;
     document.getElementById('reminder-settings').style.display = isActive ? 'block' : 'none';
@@ -421,6 +449,7 @@ function toggleWeekendField() {
 </body>
 
 </html>
+
 
 
 

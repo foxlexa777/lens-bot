@@ -261,14 +261,12 @@
 
 <span class="section-label">Контроль ношения</span>
 <div class="settings-card">
-    <div class="mode-row" style="align-items: flex-start;">
+    <div class="mode-row" style="align-items: center;">
         <div class="schedule-info" style="flex: 1;">
             <div class="schedule-icon">🔔</div>
             <div class="schedule-text-block">
                 <span class="schedule-title">Умные напоминания</span>
-                <span class="schedule-sub" style="display: block; margin-top: 4px;">
-                    Помогают не перенашивать линзы
-                </span>
+                <span class="schedule-sub" style="display: block; margin-top: 2px;">Помогают не перенашивать линзы</span>
             </div>
         </div>
         <label class="switch">
@@ -277,55 +275,47 @@
         </label>
     </div>
 
-    <div id="info-note" style="background: rgba(0, 122, 255, 0.1); border-radius: 12px; padding: 12px; margin-top: 12px;">
+    <div id="info-note" style="background: rgba(0, 122, 255, 0.1); border-radius: 12px; padding: 12px; margin-top: 14px;">
         <p style="font-size: 12px; color: #58a6ff; margin: 0; line-height: 1.4;">
             ℹ️ <b>Как это работает:</b> Срок годности линз убывает автоматически. Если сегодня вы решили пойти <b>в очках</b> — отметьте это в боте, чтобы сохранить ресурс дней.
         </p>
     </div>
 
     <div id="reminder-settings">
-        <hr>
-        <div class="schedule-row" style="display: flex; align-items: center;">
-            <div class="schedule-info">
-                <div class="schedule-text-block">
-                    <span class="schedule-title">Будни (Пн-Пт)</span>
-                    <span class="schedule-sub" style="display: block; margin-top: 4px;">Когда напомнить надеть?</span>
-                </div>
-            </div>
-            <div style="display: flex; justify-content: flex-end;">
-                <input type="time" id="time-work" class="time-input-styled" value="08:00" style="width: 85px;">
-            </div>
-        </div>
-
-        <hr>
-
-        <div class="schedule-info" style="margin-bottom: 12px;">
-            <span class="schedule-title">Выходные (Сб-Вс)</span>
-        </div>
+        <hr style="margin: 16px 0;">
         
-        <div class="mode-row" style="background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; align-items: center;">
+        <div class="schedule-row" style="display: flex; justify-content: space-between; align-items: center;">
             <div class="schedule-text-block">
-                <span class="schedule-title" style="font-size: 14px;">Ручной режим</span>
-                <span class="schedule-sub" style="display: block; margin-top: 4px;">Без авто-уведомлений</span>
+                <span class="schedule-title">Будни (Пн-Пт)</span>
+                <span class="schedule-sub" style="display: block; margin-top: 2px;">Когда напомнить надеть?</span>
             </div>
-            <div style="width: 50%; display: flex; justify-content: flex-end;">
-                <label class="switch">
-                    <input type="checkbox" id="weekend-manual" onchange="toggleWeekendField()">
-                    <span class="slider"></span>
-                </label>
-            </div>
+            <input type="time" id="time-work" class="time-input-styled" value="08:00" 
+                   style="width: 80px; height: 36px; padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
         </div>
 
-        <div id="weekend-time-row" class="schedule-row" style="margin-top: 10px; display: flex; align-items: center;">
-            <div class="schedule-info">
-                <span class="schedule-sub">Напомнить в:</span>
+        <hr style="margin: 16px 0;">
+
+        <div class="schedule-title" style="margin-bottom: 12px;">Выходные (Сб-Вс)</div>
+        
+        <div class="mode-row" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; align-items: center;">
+            <div class="schedule-text-block" style="flex: 1;">
+                <span class="schedule-title" style="font-size: 14px;">Ручной режим</span>
+                <span class="schedule-sub" style="display: block; margin-top: 2px;">Без авто-уведомлений</span>
             </div>
-            <div style="display: flex; justify-content: flex-end;">
-                <input type="time" id="time-weekend" class="time-input-styled" value="10:00" style="width: 85px;">
-            </div>
+            <label class="switch">
+                <input type="checkbox" id="weekend-manual" onchange="toggleWeekendField()">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div id="weekend-time-row" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
+            <span class="schedule-sub">Время напоминания:</span>
+            <input type="time" id="time-weekend" class="time-input-styled" value="10:00" 
+                   style="width: 80px; height: 36px; padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
         </div>
     </div>
 </div>
+                
                 
                 
     
@@ -449,6 +439,7 @@ function toggleWeekendField() {
 </body>
 
 </html>
+
 
 
 

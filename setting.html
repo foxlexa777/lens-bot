@@ -56,7 +56,6 @@
             outline: none; color-scheme: dark;
         }
 
-        /* Оформление переключателей (тумблеров) */
         .mode-row {
             display: flex; justify-content: space-between; align-items: center;
             padding: 12px; border-radius: 12px; 
@@ -78,7 +77,6 @@
         input:checked + .slider { background-color: var(--green-color); }
         input:checked + .slider:before { transform: translateX(22px); }
 
-        /* Сетка для глаз */
         .eye-row { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
@@ -90,7 +88,6 @@
         .red { color: #ff453a; }
         hr { border: 0; border-top: 1px solid #38383a; margin: 20px 0; }
 
-        /* Скрытые поля для астигматизма */
         .astigmatism-field { display: none; }
         .show-astigmatism .astigmatism-field { display: block; }
 
@@ -108,7 +105,7 @@
             content: "▼"; font-size: 10px; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--hint-color); pointer-events: none;
         }
         select { appearance: none; padding-right: 30px; }
-                /* --- СТИЛИ ДЛЯ БЛОКА РАСПИСАНИЯ --- */
+
         .settings-card {
             background-color: var(--card-bg);
             border-radius: 16px; padding: 20px;
@@ -128,7 +125,6 @@
         .schedule-sub {
             font-size: 12px; color: var(--hint-color);
         }
-        /* Делаем поля времени компактными и аккуратными */
         .time-input {
             width: 100px; padding: 10px; font-size: 15px; text-align: center;
             background-color: var(--input-bg); border-radius: 10px;
@@ -137,6 +133,20 @@
         .time-select-wrapper select {
             padding: 10px 30px 10px 10px; font-size: 15px; text-align: center;
         }
+
+        /* Статус сохранения */
+        #save-status {
+            display: none;
+            text-align: center;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        #save-status.success { background: rgba(52, 199, 89, 0.15); color: #34c759; }
+        #save-status.error { background: rgba(255, 69, 58, 0.15); color: #ff453a; }
+        #save-status.loading { background: rgba(0, 122, 255, 0.1); color: #007aff; }
     </style>
 </head>
 <body>
@@ -147,6 +157,10 @@
             <button class="nav-btn">⚙️</button>
         </div>
     </div>
+
+    <!-- Статус сохранения -->
+    <div id="save-status"></div>
+
     <span class="section-label">Ваши линзы</span>
     <div class="card">
         <div class="input-group">
@@ -238,11 +252,11 @@
             <div><span class="field-label">PWR (Диоптрии)</span><input type="number" id="pwr-right" step="0.25" value="-2.00"></div>
             
             <div class="astigmatism-field">
-    <span class="field-label">CYL (Цилиндр)</span>
-    <input type="number" id="cyl-right" step="0.25" value="-0.75"> </div>
-<div class="astigmatism-field">
-    <span class="field-label">AXIS (Ось)</span>
-    <input type="number" id="axis-right" step="10" value="90"> </div>
+                <span class="field-label">CYL (Цилиндр)</span>
+                <input type="number" id="cyl-right" step="0.25" value="-0.75"> </div>
+            <div class="astigmatism-field">
+                <span class="field-label">AXIS (Ось)</span>
+                <input type="number" id="axis-right" step="10" value="90"> </div>
             
             <div><span class="field-label">Запас (шт)</span><input type="number" id="stock-right" value="3"></div>
         </div>
@@ -257,95 +271,94 @@
         <span class="solution-desc">Открытый флакон с раствором безопасен не более 90 дней. Отметьте, чтобы бот напомнил вам о его замене.</span>
         <button id="solution-btn" class="solution-btn">🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН</button>
     </div>
+
     <span class="section-label">Замена и покупки</span>
-<div class="card">
-    <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Замена текущей пары</div>
-    <div class="eye-row">
-        <div class="input-group">
-            <span class="field-label">Напомнить за (дней)</span>
-            <input type="number" id="remind-replace-days" value="1">
-        </div>
-        <div class="input-group">
-            <span class="field-label">Время уведомления</span>
-            <input type="time" id="remind-replace-time" value="10:00">
-        </div>
-    </div>
-
-    <hr style="margin: 16px 0; border: 0; border-top: 1px solid #38383a;">
-
-    <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Мой запас линз</div>
-    <div class="input-group" style="margin-bottom: 0;">
-        <span class="field-label">Напомнить о покупке, когда останется меньше (шт)</span>
-        <input type="number" id="stock-alert-threshold" value="2">
-    </div>
-</div>
-
-<span class="section-label">Ежедневный контроль</span>
-<div class="card">
-    <div class="mode-row" style="align-items: center; padding: 0;">
-        <div class="schedule-info" style="flex: 1;">
-            <div class="schedule-text-block">
-                <span class="schedule-title">Умный ассистент</span>
-                <span class="schedule-sub" style="display: block; margin-top: 2px;">Ежедневные напоминания снять линзы</span>
+    <div class="card">
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Замена текущей пары</div>
+        <div class="eye-row">
+            <div class="input-group">
+                <span class="field-label">Напомнить за (дней)</span>
+                <input type="number" id="remind-before" value="1">
             </div>
-        </div>
-        <label class="switch">
-            <input type="checkbox" id="reminders-active" checked onchange="toggleReminderFields()">
-            <span class="slider"></span>
-        </label>
-    </div>
-
-    <div id="info-note" style="background: rgba(0, 122, 255, 0.1); border-radius: 12px; padding: 12px; margin-top: 14px;">
-        <p style="font-size: 12px; color: #58a6ff; margin: 0; line-height: 1.4;">
-            ℹ️ <b>Как это работает:</b> Дни ношения списываются автоматически. Бот сам ставит статус «надел линзы» в указанное ниже время и вечером напоминает их снять. Если сегодня вы решили не надевать линзы, просто нажмите <b>«Я сегодня в очках»</b>, чтобы сохранить этот день.
-        </p>
-    </div>
-
-    <div id="reminder-settings">
-        <hr style="margin: 16px 0; border: 0; border-top: 1px solid #38383a;">
-        
-        <div class="schedule-row" style="display: flex; justify-content: space-between; align-items: center;">
-            <div class="schedule-text-block">
-                <span class="schedule-title">Будни (Пн-Пт)</span>
-                <span class="schedule-sub" style="display: block; margin-top: 2px;">Во сколько вы их надеваете?</span>
+            <div class="input-group">
+                <span class="field-label">Время уведомления</span>
+                <input type="time" id="notify-time" value="10:00">
             </div>
-            <input type="time" id="time-work" class="time-input-styled" value="08:00" 
-                   style="width: 80px; height: 36px; padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
         </div>
 
         <hr style="margin: 16px 0; border: 0; border-top: 1px solid #38383a;">
-        
-        <div class="schedule-title" style="margin-bottom: 12px;">Выходные (Сб-Вс)</div>
-        
-        <div class="mode-row" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; align-items: center;">
-            <div class="schedule-text-block" style="flex: 1;">
-                <span class="schedule-title" style="font-size: 14px;">Ручной режим</span>
-                <span class="schedule-sub" style="display: block; margin-top: 2px;">Без авто-статуса «Надел»</span>
+
+        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Мой запас линз</div>
+        <div class="input-group" style="margin-bottom: 0;">
+            <span class="field-label">Напомнить о покупке, когда останется меньше (шт)</span>
+            <input type="number" id="stock-threshold" value="2">
+        </div>
+    </div>
+
+    <span class="section-label">Ежедневный контроль</span>
+    <div class="card">
+        <div class="mode-row" style="align-items: center; padding: 0;">
+            <div class="schedule-info" style="flex: 1;">
+                <div class="schedule-text-block">
+                    <span class="schedule-title">Умный ассистент</span>
+                    <span class="schedule-sub" style="display: block; margin-top: 2px;">Ежедневные напоминания снять линзы</span>
+                </div>
             </div>
             <label class="switch">
-                <input type="checkbox" id="weekend-manual" onchange="toggleWeekendField()">
+                <input type="checkbox" id="reminders-active" checked onchange="toggleReminderFields()">
                 <span class="slider"></span>
             </label>
         </div>
 
-        <div id="weekend-time-row" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
-            <span class="schedule-sub">Или укажите время для выходных:</span>
-            <input type="time" id="time-weekend" class="time-input-styled" value="10:00" 
-                   style="width: 80px; height: 36px; padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+        <div id="info-note" style="background: rgba(0, 122, 255, 0.1); border-radius: 12px; padding: 12px; margin-top: 14px;">
+            <p style="font-size: 12px; color: #58a6ff; margin: 0; line-height: 1.4;">
+                ℹ️ <b>Как это работает:</b> Дни ношения списываются автоматически. Бот сам ставит статус «надел линзы» в указанное ниже время и вечером напоминает их снять. Если сегодня вы решили не надевать линзы, просто нажмите <b>«Я сегодня в очках»</b>, чтобы сохранить этот день.
+            </p>
+        </div>
+
+        <div id="reminder-settings">
+            <hr style="margin: 16px 0; border: 0; border-top: 1px solid #38383a;">
+            
+            <div class="schedule-row" style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="schedule-text-block">
+                    <span class="schedule-title">Будни (Пн-Пт)</span>
+                    <span class="schedule-sub" style="display: block; margin-top: 2px;">Во сколько вы их надеваете?</span>
+                </div>
+                <input type="time" id="time-work" class="time-input-styled" value="08:00" 
+                       style="width: 80px; height: 36px; padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+            </div>
+
+            <hr style="margin: 16px 0; border: 0; border-top: 1px solid #38383a;">
+            
+            <div class="schedule-title" style="margin-bottom: 12px;">Выходные (Сб-Вс)</div>
+            
+            <div class="mode-row" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; align-items: center;">
+                <div class="schedule-text-block" style="flex: 1;">
+                    <span class="schedule-title" style="font-size: 14px;">Ручной режим</span>
+                    <span class="schedule-sub" style="display: block; margin-top: 2px;">Без авто-статуса «Надел»</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="weekend-manual" onchange="toggleWeekendField()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div id="weekend-time-row" style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
+                <span class="schedule-sub">Или укажите время для выходных:</span>
+                <input type="time" id="time-weekend" class="time-input-styled" value="10:00" 
+                       style="width: 80px; height: 36px; padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+            </div>
         </div>
     </div>
-</div>
-    
-
-        </div>
-
-
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" }).show();
-        // Вызываем один раз при загрузке страницы
+
+        // ⚠️ ЗАМЕНИ ЭТУ ССЫЛКУ на актуальную от localtunnel каждый раз при запуске!
+        const API_URL = "https://tricky-paws-crash.loca.lt";
+
         toggleReminderFields();
         toggleWeekendField();
 
@@ -363,17 +376,12 @@
             document.getElementById('days-left').value = e.target.value;
         };
 
-        // Логика астигматизма (скрыть/показать поля)
+        // Логика астигматизма
         const astigToggle = document.getElementById('astigmatism-mode');
         const visionCard = document.getElementById('vision-card');
         astigToggle.addEventListener('change', () => {
-            if(astigToggle.checked) {
-                visionCard.classList.add('show-astigmatism');
-            } else {
-                visionCard.classList.remove('show-astigmatism');
-            }
+            visionCard.classList.toggle('show-astigmatism', astigToggle.checked);
         });
-
 
         function toggleReminderFields() {
             const isActive = document.getElementById('reminders-active').checked;
@@ -385,22 +393,25 @@
             const isManual = document.getElementById('weekend-manual').checked;
             const timeRow = document.getElementById('weekend-time-row');
             const timeInput = document.getElementById('time-weekend');
-            
-            if (isManual) {
-                timeRow.style.opacity = '0.3';
-                timeInput.disabled = true;
-            } else {
-                timeRow.style.opacity = '1';
-                timeInput.disabled = false;
-            }
+            timeRow.style.opacity = isManual ? '0.3' : '1';
+            timeInput.disabled = isManual;
         }
 
-        // Сбор данных и отправка в бота
-       tg.onEvent('mainButtonClicked', function() {
+        function showStatus(msg, type) {
+            const el = document.getElementById('save-status');
+            el.textContent = msg;
+            el.className = type;
+            el.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 🔥 ГЛАВНАЯ ФУНКЦИЯ — отправка на API вместо tg.sendData
+        tg.onEvent('mainButtonClicked', async function() {
             try {
                 const isAstig = document.getElementById('astigmatism-mode').checked;
-        
+
                 const data = {
+                    user_id: tg.initDataUnsafe?.user?.id || 0,
                     utc_offset: -new Date().getTimezoneOffset(),
                     brand: document.getElementById('lens-brand').value || "Не указан",
                     duration: parseInt(document.getElementById('duration').value) || 14,
@@ -424,48 +435,35 @@
                     notify_time: document.getElementById('notify-time').value || "10:00",
                     stock_threshold: parseInt(document.getElementById('stock-threshold').value) || 2
                 };
-                
-                tg.sendData(JSON.stringify(data));
-                tg.close();
+
+                // Показываем что идёт сохранение
+                tg.MainButton.setParams({ text: "СОХРАНЕНИЕ...", color: "#555" });
+                showStatus("⏳ Сохраняем настройки...", "loading");
+
+                const response = await fetch(`${API_URL}/api/save_settings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'bypass-tunnel-reminder': 'true'  // нужно для localtunnel
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    showStatus("✅ Настройки сохранены!", "success");
+                    tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" });
+                    // Окно НЕ закрывается — пользователь остаётся в Mini App!
+                } else {
+                    throw new Error(result.message || "Неизвестная ошибка");
+                }
+
             } catch (e) {
-                alert("Ошибка при сохранении: " + e.message);
+                showStatus("❌ Ошибка: " + e.message, "error");
+                tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" });
             }
         });
     </script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

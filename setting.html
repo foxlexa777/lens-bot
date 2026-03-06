@@ -258,43 +258,7 @@
         <button id="solution-btn" class="solution-btn">🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН</button>
     </div>
 
-        <span class="section-label">Расписание уведомлений</span>
-    <div class="settings-card">
-        <span class="schedule-desc">Бот будет присылать напоминания «Надеть» и «Снять» линзы в указанное время.</span>
-
-        <div class="schedule-row">
-            <div class="schedule-info">
-                <span class="schedule-title">Рабочие дни (Пн-Пт)</span>
-                <span class="schedule-sub">Надеть линзы</span>
-            </div>
-            <input type="time" id="time-work" class="time-input" value="09:00">
-        </div>
-
-        <hr> <div class="schedule-row">
-            <div class="schedule-info">
-                <span class="schedule-title">Выходные (Сб-Вс)</span>
-                <span class="schedule-sub">Надеть линзы</span>
-            </div>
-            <div class="select-wrapper time-select-wrapper">
-                <select id="time-weekend">
-                    <option value="manual">Вручную</option>
-                    <option value="10:00" selected>10:00</option>
-                    <option value="11:00">11:00</option>
-                    <option value="12:00">12:00</option>
-                </select>
-            </div>
-        </div>
-
-        <hr>
-
-        <div class="schedule-row">
-            <div class="schedule-info">
-                <span class="schedule-title">Вечернее время</span>
-                <span class="schedule-sub">Напомнить снять</span>
-            </div>
-            <input type="time" id="time-remove" class="time-input" value="22:30">
-        </div>
-    </div>
+        
                 
     
 </div>
@@ -323,7 +287,44 @@
         const visionCard = document.getElementById('vision-card');
         astigToggle.addEventListener('change', () => {
             if(astigToggle.checked) {
-                visionCard.classList.add('show-astigmatism');
+                visionCard.classList.add('show-astig<span class="section-label">Автоматический учет</span>
+<div class="settings-card">
+    <div class="mode-row">
+        <div>
+            <span class="mode-text">Авто-режим</span>
+            <span class="mode-desc">Система сама отметит начало дня</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="auto-mode" checked>
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="schedule-row">
+        <div class="schedule-info">
+            <div class="schedule-icon">☀️</div>
+            <div class="schedule-text-block">
+                <span class="schedule-title">Одеваю обычно в</span>
+                <span class="schedule-sub">Начало ношения</span>
+            </div>
+        </div>
+        <input type="time" id="time-wear" class="time-input-styled" value="08:00">
+    </div>
+
+    <hr>
+
+    <div class="schedule-row">
+        <div class="schedule-info">
+            <div class="schedule-icon">🌙</div>
+            <div class="schedule-text-block">
+                <span class="schedule-title">Снимаю обычно в</span>
+                <span class="schedule-sub">Конец дня</span>
+            </div>
+        </div>
+        <input type="time" id="time-remove" class="time-input-styled" value="23:00">
+    </div>
+</div>
+                    matism');
             } else {
                 visionCard.classList.remove('show-astigmatism');
             }
@@ -369,6 +370,7 @@
 </body>
 
 </html>
+
 
 
 

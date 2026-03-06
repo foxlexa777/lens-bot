@@ -353,13 +353,10 @@
         // Вызываем один раз при загрузке страницы
 toggleReminderFields();
 toggleWeekendField()
+
 function toggleReminderFields() {
     const isActive = document.getElementById('reminders-active').checked;
-    
-    // Скрываем/показываем настройки времени
     document.getElementById('reminder-settings').style.display = isActive ? 'block' : 'none';
-    
-    // Скрываем/показываем блок "Важно" только при включенных уведомлениях
     document.getElementById('info-note').style.display = isActive ? 'block' : 'none';
 }
 
@@ -376,8 +373,6 @@ function toggleWeekendField() {
         timeInput.disabled = false;
     }
 }
-
-;
         
         function toggleReminderFields() {
     const isActive = document.getElementById('reminders-active').checked;
@@ -439,6 +434,7 @@ function toggleWeekendField() {
 </body>
 
 </html>
+
 
 
 

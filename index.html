@@ -42,13 +42,13 @@
         .eye-card.inactive { opacity: 0.25; }
 
         .eye-label { font-size: 9px; color: var(--hint-color); text-transform: uppercase; font-weight: 700; text-align: center; margin-bottom: 6px; letter-spacing: 1px; }
-        .eye-body { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding-bottom: 2px; }
+        .eye-body { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
 
         .specs { display: flex; flex-direction: column; gap: 2px; }
         .specs div { font-size: 9px; color: var(--hint-color); }
         .specs b { color: #fff; font-size: 10px; }
 
-        .ring { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
+        .ring { position: relative; width: 84px; height: 84px; flex-shrink: 0; margin-top: 2px; margin-bottom: 2px; }
         .ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
         .ring circle { fill: transparent; stroke-width: 8; stroke-linecap: round; }
         .ring .bg  { stroke: var(--border); }
@@ -375,13 +375,14 @@
             document.getElementById('card-l').classList.toggle('inactive', glassesOn);
             document.getElementById('card-r').classList.toggle('inactive', glassesOn);
             document.getElementById('action-area').style.display = glassesOn ? 'none' : 'block';
-            // Если включили очки — снимаем линзы
+            // Если включили очки — снимаем линзы и пишем removed
             if (glassesOn && lensesWorn) {
                 lensesWorn = false;
                 const btn = document.getElementById('wear-btn');
                 btn.classList.remove('active');
                 btn.innerHTML = '👁️ НАДЕТЬ ЛИНЗЫ';
                 stopTimer();
+                api(`/api/remove/${uid}`);  // записываем снятие в БД
             }
             api(`/api/glasses/${uid}`, 'POST', { active: glassesOn });
         };
@@ -473,6 +474,7 @@
                 // Раствор
                 if (d.solution) {
                     const sol = d.solution;
+                    console.log('solution from DB:', JSON.stringify(sol));
                     const pct = Math.round((sol.days_used / sol.max_days) * 100);
                     setTimeout(() => { document.getElementById('sol-fill').style.width = pct + '%'; }, 100);
                     document.getElementById('sol-label').textContent = `(${sol.days_used}/${sol.max_days} дн.)`;

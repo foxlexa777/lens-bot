@@ -42,18 +42,18 @@
         .eye-card.inactive { opacity: 0.25; }
 
         .eye-label { font-size: 9px; color: var(--hint-color); text-transform: uppercase; font-weight: 700; text-align: center; margin-bottom: 10px; letter-spacing: 1px; }
-        .eye-body { display: flex; align-items: center; justify-content: space-between; }
+        .eye-body { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
 
         .specs { display: flex; flex-direction: column; gap: 2px; }
         .specs div { font-size: 9px; color: var(--hint-color); }
         .specs b { color: #fff; font-size: 10px; }
 
-        .ring { position: relative; width: 70px; height: 70px; }
+        .ring { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
         .ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
         .ring circle { fill: transparent; stroke-width: 8; stroke-linecap: round; }
         .ring .bg  { stroke: var(--border); }
         .ring .bar { stroke: var(--accent-blue); transition: stroke-dashoffset 0.8s cubic-bezier(.23,1,.32,1), stroke 0.4s; }
-        .ring-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; transition: color 0.4s; }
+        .ring-text { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; transition: color 0.4s; line-height: 1; }
 
         /* Кнопки замены */
         .replace-section { margin-bottom: 20px; }
@@ -155,7 +155,7 @@
                         <circle class="bg" cx="50" cy="50" r="45"/>
                         <circle class="bar" id="bar-l" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="283"/>
                     </svg>
-                    <div class="ring-text" id="ring-text-l">—</div>
+                    <div class="ring-text" id="ring-text-l"><span id="ring-num-l">—</span><span style="font-size:9px;font-weight:500;opacity:0.6;margin-top:1px" id="ring-sub-l"></span></div>
                 </div>
             </div>
         </div>
@@ -174,7 +174,7 @@
                         <circle class="bg" cx="50" cy="50" r="45"/>
                         <circle class="bar" id="bar-r" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="283"/>
                     </svg>
-                    <div class="ring-text" id="ring-text-r">—</div>
+                    <div class="ring-text" id="ring-text-r"><span id="ring-num-r">—</span><span style="font-size:9px;font-weight:500;opacity:0.6;margin-top:1px" id="ring-sub-r"></span></div>
                 </div>
             </div>
         </div>
@@ -242,7 +242,7 @@
         tg.expand();
 
         // ⚠️ ЗАМЕНИ НА АКТУАЛЬНЫЙ URL ОТ LOCALTUNNEL
-        const API_URL = "https://slick-clouds-return.loca.lt";
+        const API_URL = "https://tricky-paws-crash.loca.lt";
         const URL_BASE = "https://foxlexa777.github.io/lens-bot/";
 
         let stockL = 0, stockR = 0, threshold = 2, duration = 14;
@@ -265,10 +265,12 @@
         const uid = getUserId();
 
         // ── Навигация ──
-        document.getElementById('btn-settings').onclick = () =>
-            tg.openLink(`${URL_BASE}setting.html?uid=${uid}`);
-        document.getElementById('btn-history').onclick = () =>
-            tg.openLink(`${URL_BASE}history.html?uid=${uid}`);
+        document.getElementById('btn-settings').onclick = () => {
+            window.location.href = `${URL_BASE}setting.html?uid=${uid}`;
+        };
+        document.getElementById('btn-history').onclick = () => {
+            window.location.href = `${URL_BASE}history.html?uid=${uid}`;
+        };
 
         // ── Форматирование ──
         function fmt(val) {
@@ -291,8 +293,14 @@
                 bar.style.strokeDashoffset = offset;
                 bar.style.stroke = color;
             }, 80);
+            // textId = 'ring-text-l' / 'ring-text-r'
+            const side   = textId.endsWith('-l') ? 'l' : 'r';
+            const numEl  = document.getElementById('ring-num-'  + side);
+            const subEl  = document.getElementById('ring-sub-' + side);
             const textEl = document.getElementById(textId);
-            textEl.textContent = days;
+            if (numEl) { numEl.textContent = days; numEl.style.color = color; }
+            else { textEl.textContent = days; }
+            if (subEl) subEl.textContent = days > 0 ? 'дн.' : '';
             textEl.style.color = color;
         }
 
@@ -358,7 +366,7 @@
                 const dayNum = worn < 1 ? 1 : worn;
                 const mode = d.continuous_mode ? 'Пролонгированный режим' : 'Дневной режим';
                 document.getElementById('top-status').innerHTML =
-                    `Сегодня <b>${dayNum}-й день</b> носки • ${mode}`;
+                    `Сегодня <b>${dayNum}-й день</b>&nbsp;носки • ${mode}`;
 
                 // Кольца
                 setRing('bar-l', 'ring-text-l', daysL, duration);
@@ -464,82 +472,63 @@
             }
         }
 
-        // ── Замена линз ──
-        async function replaceLens(eye) {
-            const res = await api(`/api/replace/${uid}/${eye}`);
-            if (!res || res.status !== 'ok') return;
-            // Обновляем кольца и запас из ответа
-            if (res.stock) {
-                if (res.stock.left)  {
-                    const d = res.stock.left;
-                    setRing('bar-l', 'ring-text-l', d.days_left ?? duration, duration);
-                    stockL = d.stock ?? stockL;
-                }
-                if (res.stock.right) {
-                    const d = res.stock.right;
-                    setRing('bar-r', 'ring-text-r', d.days_left ?? duration, duration);
-                    stockR = d.stock ?? stockR;
-                }
-                updateStockDisplay();
-            }
-            // Визуальная вспышка на кнопке
+        // ── Замена линз — Optimistic UI ──
+        function replaceLens(eye) {
+            // 1. Сразу обновляем UI
+            if (eye === 'left'  || eye === 'both') { setRing('bar-l', 'ring-text-l', duration, duration); stockL = Math.max(0, stockL-1); }
+            if (eye === 'right' || eye === 'both') { setRing('bar-r', 'ring-text-r', duration, duration); stockR = Math.max(0, stockR-1); }
+            updateStockDisplay();
             const btnMap = { left: 'btn-replace-l', right: 'btn-replace-r', both: 'btn-replace-both' };
             const btn = document.getElementById(btnMap[eye]);
-            if (btn) {
-                const orig = btn.style.background;
-                btn.style.background = 'var(--accent-green)';
-                setTimeout(() => btn.style.background = orig, 800);
-            }
+            if (btn) { btn.style.background = 'var(--accent-green)'; setTimeout(() => btn.style.background = '', 700); }
+            // 2. Фоном сохраняем в БД
+            api(`/api/replace/${uid}/${eye}`);
         }
 
         document.getElementById('btn-replace-l').onclick    = () => replaceLens('left');
         document.getElementById('btn-replace-r').onclick    = () => replaceLens('right');
         document.getElementById('btn-replace-both').onclick = () => replaceLens('both');
 
-        // ── Надеть / снять линзы ──
+        // ── Надеть / снять линзы — Optimistic UI ──
         let lensesWorn = false;
-        document.getElementById('wear-btn').onclick = async function() {
+        document.getElementById('wear-btn').onclick = function() {
             lensesWorn = !lensesWorn;
             if (lensesWorn) {
-                await api(`/api/wear/${uid}`);
                 this.classList.add('active');
                 this.innerHTML = '✅ ЛИНЗЫ НАДЕТЫ';
+                api(`/api/wear/${uid}`);
             } else {
-                await api(`/api/remove/${uid}`);
                 this.classList.remove('active');
                 this.innerHTML = '👁️ НАДЕТЬ ЛИНЗЫ';
+                api(`/api/remove/${uid}`);
             }
         };
 
-        // ── Сегодня в очках ──
+        // ── Сегодня в очках — Optimistic UI ──
         let glassesOn = false;
-        document.getElementById('gl-btn').onclick = async function() {
+        document.getElementById('gl-btn').onclick = function() {
             glassesOn = !glassesOn;
-            await api(`/api/glasses/${uid}`, 'POST', { active: glassesOn });
             this.classList.toggle('active', glassesOn);
             document.getElementById('card-l').classList.toggle('inactive', glassesOn);
             document.getElementById('card-r').classList.toggle('inactive', glassesOn);
             document.getElementById('action-area').style.display = glassesOn ? 'none' : 'block';
+            api(`/api/glasses/${uid}`, 'POST', { active: glassesOn });
         };
 
-        // ── Раствор: обновил ──
-        document.getElementById('sol-reset').onclick = async function() {
-            const res = await api(`/api/solution/reset/${uid}`);
-            if (res && res.status === 'ok') {
-                document.getElementById('sol-fill').style.width = '100%';
-                document.getElementById('sol-label').textContent = '(0/90 дн.)';
-            }
+        // ── Раствор: обновил — Optimistic UI ──
+        document.getElementById('sol-reset').onclick = function() {
+            document.getElementById('sol-fill').style.width = '100%';
+            document.getElementById('sol-label').textContent = '(0/90 дн.)';
+            api(`/api/solution/reset/${uid}`);
         };
 
-        // ── Запас +/- ──
-        async function changeStock(side, delta) {
+        // ── Запас +/- — Optimistic UI ──
+        function changeStock(side, delta) {
+            if (side === 'l') stockL = Math.max(0, stockL + delta);
+            else              stockR = Math.max(0, stockR + delta);
+            updateStockDisplay();
             const eye = side === 'l' ? 'left' : 'right';
-            const res = await api(`/api/stock/${uid}/${eye}/${delta}`);
-            if (res && res.status === 'ok') {
-                if (side === 'l') stockL = res.stock;
-                else              stockR = res.stock;
-                updateStockDisplay();
-            }
+            api(`/api/stock/${uid}/${eye}/${delta}`);
         }
     </script>
 </body>

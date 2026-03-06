@@ -359,12 +359,19 @@
         // ⚠️ ЗАМЕНИ ЭТУ ССЫЛКУ на актуальную от localtunnel каждый раз при запуске!
         const API_URL = "https://wicked-camels-fix.loca.lt";
 
-        // 🔍 ОТЛАДКА
-        try {
-            const _u = tg.initDataUnsafe?.user;
-            alert("user_id=" + (_u?.id ?? "undefined") + "\nfirst_name=" + (_u?.first_name ?? "undefined") + "\ninitData.length=" + (tg.initData?.length ?? 0));
-        } catch(e) {
-            alert("ERROR: " + e.message);
+        // Получаем user_id всеми возможными способами
+        function getTelegramUserId() {
+            const uid1 = tg.initDataUnsafe?.user?.id;
+            if (uid1) return uid1;
+            try {
+                const params = new URLSearchParams(tg.initData);
+                const userStr = params.get('user');
+                if (userStr) {
+                    const userObj = JSON.parse(decodeURIComponent(userStr));
+                    if (userObj?.id) return userObj.id;
+                }
+            } catch(e) {}
+            return 0;
         }
 
         toggleReminderFields();
@@ -416,10 +423,16 @@
         // 🔥 ГЛАВНАЯ ФУНКЦИЯ — отправка на API вместо tg.sendData
         tg.onEvent('mainButtonClicked', async function() {
             try {
+                // Показываем что видит Telegram при нажатии кнопки
+                const debugUid = getTelegramUserId();
+                if (debugUid === 0) {
+                    const confirmed = confirm("⚠️ user_id не определён (=" + debugUid + ")\ninitData.length=" + tg.initData.length + "\n\nПродолжить сохранение?");
+                    if (!confirmed) return;
+                }
                 const isAstig = document.getElementById('astigmatism-mode').checked;
 
                 const data = {
-                    user_id: tg.initDataUnsafe?.user?.id || 0,
+                    user_id: getTelegramUserId(),
                     utc_offset: -new Date().getTimezoneOffset(),
                     brand: document.getElementById('lens-brand').value || "Не указан",
                     duration: parseInt(document.getElementById('duration').value) || 14,
@@ -482,4 +495,3 @@
     </script>
 </body>
 </html>
-

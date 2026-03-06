@@ -96,6 +96,35 @@
             content: "▼"; font-size: 10px; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--hint-color); pointer-events: none;
         }
         select { appearance: none; padding-right: 30px; }
+                /* --- СТИЛИ ДЛЯ БЛОКА РАСПИСАНИЯ --- */
+        .settings-card {
+            background-color: var(--card-bg);
+            border-radius: 16px; padding: 20px; margin-bottom: 20px;
+        }
+        .schedule-desc {
+            font-size: 13px; color: var(--hint-color); margin-bottom: 20px; line-height: 1.4; display: block;
+        }
+        .schedule-row {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .schedule-info {
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .schedule-title {
+            font-size: 15px; font-weight: 500; color: var(--text-color);
+        }
+        .schedule-sub {
+            font-size: 12px; color: var(--hint-color);
+        }
+        /* Делаем поля времени компактными и аккуратными */
+        .time-input {
+            width: 100px; padding: 10px; font-size: 15px; text-align: center;
+            background-color: var(--input-bg); border-radius: 10px;
+        }
+        .time-select-wrapper { width: 120px; }
+        .time-select-wrapper select {
+            padding: 10px 30px 10px 10px; font-size: 15px; text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -229,27 +258,45 @@
         <button id="solution-btn" class="solution-btn">🧪 ОТКРЫЛ НОВЫЙ ФЛАКОН</button>
     </div>
 
+        <span class="section-label">Расписание уведомлений</span>
     <div class="settings-card">
-    <h3 style="margin-top:0; font-size:16px; color:var(--accent-blue);">📅 Расписание уведомлений</h3>
-    <p style="font-size:11px; color:var(--hint-color); margin-bottom:15px;">Бот будет присылать напоминание «Надеть линзы» в это время</p>
-    
-    <div class="time-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <span style="font-size:14px;">Рабочие дни (Пн-Пт)</span>
-        <input type="time" value="09:00" style="background:var(--input-bg); border:1px solid var(--border); color:white; padding:5px; border-radius:8px;">
-    </div>
+        <span class="schedule-desc">Бот будет присылать напоминания «Надеть» и «Снять» линзы в указанное время.</span>
 
-    <div class="time-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <span style="font-size:14px;">Выходные (Сб-Вс)</span>
-        <select style="background:var(--input-bg); border:1px solid var(--border); color:white; padding:5px; border-radius:8px;">
-            <option>Вручную</option>
-            <option>По времени</option>
-        </select>
+        <div class="schedule-row">
+            <div class="schedule-info">
+                <span class="schedule-title">Рабочие дни (Пн-Пт)</span>
+                <span class="schedule-sub">Надеть линзы</span>
+            </div>
+            <input type="time" id="time-work" class="time-input" value="09:00">
+        </div>
+
+        <hr> <div class="schedule-row">
+            <div class="schedule-info">
+                <span class="schedule-title">Выходные (Сб-Вс)</span>
+                <span class="schedule-sub">Надеть линзы</span>
+            </div>
+            <div class="select-wrapper time-select-wrapper">
+                <select id="time-weekend">
+                    <option value="manual">Вручную</option>
+                    <option value="10:00" selected>10:00</option>
+                    <option value="11:00">11:00</option>
+                    <option value="12:00">12:00</option>
+                </select>
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="schedule-row">
+            <div class="schedule-info">
+                <span class="schedule-title">Вечернее время</span>
+                <span class="schedule-sub">Напомнить снять</span>
+            </div>
+            <input type="time" id="time-remove" class="time-input" value="22:30">
+        </div>
     </div>
+                
     
-    <div class="time-row" style="display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size:14px;">Напомнить снять в</span>
-        <input type="time" value="22:30" style="background:var(--input-bg); border:1px solid var(--border); color:white; padding:5px; border-radius:8px;">
-    </div>
 </div>
 
     <script>
@@ -322,5 +369,6 @@
 </body>
 
 </html>
+
 
 

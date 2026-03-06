@@ -359,6 +359,15 @@
         // ⚠️ ЗАМЕНИ ЭТУ ССЫЛКУ на актуальную от localtunnel каждый раз при запуске!
         const API_URL = "https://five-cats-agree.loca.lt";
 
+        // 🔍 ОТЛАДКА — показываем user_id прямо на странице (удали после проверки)
+        const _dbgUser = tg.initDataUnsafe?.user;
+        const _dbgDiv = document.createElement('div');
+        _dbgDiv.style = 'background:#1a1a2e;color:#58a6ff;padding:8px 12px;border-radius:10px;font-size:12px;margin-bottom:12px;word-break:break-all;';
+        _dbgDiv.innerHTML = '<b>DEBUG:</b> user_id=' + (_dbgUser?.id ?? 'undefined') 
+            + ' | first_name=' + (_dbgUser?.first_name ?? 'undefined')
+            + '<br>initData length=' + (tg.initData?.length ?? 0);
+        document.getElementById('save-status').after(_dbgDiv);
+
         toggleReminderFields();
         toggleWeekendField();
 
@@ -474,4 +483,3 @@
     </script>
 </body>
 </html>
-

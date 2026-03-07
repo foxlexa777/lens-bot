@@ -232,7 +232,31 @@
             </div>
             <div class="input-group">
                 <span class="field-label">Осталось дней</span>
-                <input type="number" id="days-left" value="14" min="0">
+                <input type="number" id="days-left" value="14" min="0"
+                    placeholder="Оба глаза">
+            </div>
+        </div>
+
+        <!-- Раскрывашка: разные дни для каждого глаза -->
+        <div id="diff-days-toggle" style="margin-top:8px;margin-bottom:4px">
+            <button id="btn-diff-days" style="background:none;border:none;color:var(--accent-color);
+                font-size:12px;padding:0;cursor:pointer;display:flex;align-items:center;gap:4px">
+                <span id="diff-days-arrow">▶</span> Разные дни для каждого глаза
+            </button>
+        </div>
+        <div id="diff-days-panel" style="display:none;margin-top:8px">
+            <div class="eye-row">
+                <div class="input-group">
+                    <span class="field-label">🔵 Левый — осталось дней</span>
+                    <input type="number" id="days-left-l" value="14" min="0">
+                </div>
+                <div class="input-group">
+                    <span class="field-label">🔴 Правый — осталось дней</span>
+                    <input type="number" id="days-left-r" value="14" min="0">
+                </div>
+            </div>
+            <div style="font-size:11px;color:var(--hint-color);margin-top:4px;line-height:1.4">
+                Заполните если у глаз разные сроки. Иначе используется поле выше.
             </div>
         </div>
     </div>
@@ -384,7 +408,7 @@
         tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" }).show();
 
         // ⚠️ ЗАМЕНИ ЭТУ ССЫЛКУ на актуальную от localtunnel каждый раз при запуске!
-        const API_URL = "https://lemon-roses-count.loca.lt";
+        const API_URL = "https://metal-peaches-appear.loca.lt";
 
         // Получаем user_id всеми возможными способами
         function getTelegramUserId() {
@@ -449,6 +473,20 @@
             });
         }
 
+        // Раскрывашка разных дней
+        let diffDaysOpen = false;
+        document.getElementById('btn-diff-days').onclick = function() {
+            diffDaysOpen = !diffDaysOpen;
+            document.getElementById('diff-days-panel').style.display = diffDaysOpen ? 'block' : 'none';
+            document.getElementById('diff-days-arrow').textContent = diffDaysOpen ? '▼' : '▶';
+        };
+        // Синхронизация: если меняют общее поле — обновляем оба
+        document.getElementById('days-left').addEventListener('input', function() {
+            const v = this.value;
+            document.getElementById('days-left-l').value = v;
+            document.getElementById('days-left-r').value = v;
+        });
+
         async function loadSettings() {
             const uid = getTelegramUserId();
             if (!uid) { hideSkeletons(); return; }
@@ -468,7 +506,20 @@
 
                 // Основные поля
                 if (d.left?.duration)  document.getElementById('duration').value   = d.left.duration;
-                if (d.left?.days_left !== undefined) document.getElementById('days-left').value  = d.left.days_left;
+                if (d.left?.days_left !== undefined) {
+                    document.getElementById('days-left').value   = d.left.days_left;
+                    document.getElementById('days-left-l').value = d.left.days_left;
+                }
+                if (d.right?.days_left !== undefined) {
+                    document.getElementById('days-left-r').value = d.right.days_left;
+                }
+                // Если дни разные — раскрываем панель
+                if (d.left?.days_left !== undefined && d.right?.days_left !== undefined &&
+                    d.left.days_left !== d.right.days_left) {
+                    diffDaysOpen = true;
+                    document.getElementById('diff-days-panel').style.display = 'block';
+                    document.getElementById('diff-days-arrow').textContent = '▼';
+                }
                 if (d.left?.bc || d.bc) document.getElementById('bc-all').value    = d.bc || d.left.bc;
 
                 // Левый глаз
@@ -511,6 +562,13 @@
 
             } catch(e) {
                 console.error('Ошибка загрузки настроек:', e);
+                // Офлайн-баннер
+                const banner = document.createElement('div');
+                banner.style.cssText = 'background:#2c2c2e;border-radius:12px;padding:10px 14px;' +
+                    'margin:0 0 12px;font-size:12px;color:#ff9f0a;display:flex;' +
+                    'align-items:center;gap:8px;';
+                banner.innerHTML = '<span>⚠️</span><span>Не удалось загрузить настройки. Проверьте соединение.</span>';
+                document.querySelector('.section-label').before(banner);
             } finally {
                 hideSkeletons();
             }
@@ -569,7 +627,14 @@
                     utc_offset: -new Date().getTimezoneOffset(),
                     brand: document.getElementById('lens-brand').value || "Не указан",
                     duration: parseInt(document.getElementById('duration').value) || 14,
-                    days_left: parseInt(document.getElementById('days-left').value) || 14,
+                    // Если панель разных дней открыта — берём оттуда, иначе из общего
+                    days_left:   parseInt(document.getElementById('days-left').value)   || 14,
+                    days_left_l: diffDaysOpen
+                        ? (parseInt(document.getElementById('days-left-l').value) || parseInt(document.getElementById('days-left').value) || 14)
+                        : (parseInt(document.getElementById('days-left').value) || 14),
+                    days_left_r: diffDaysOpen
+                        ? (parseInt(document.getElementById('days-left-r').value) || parseInt(document.getElementById('days-left').value) || 14)
+                        : (parseInt(document.getElementById('days-left').value) || 14),
                     bc: parseFloat(document.getElementById('bc-all').value) || 8.6,
                     
                     left: { 
@@ -635,7 +700,3 @@
     </script>
 </body>
 </html>
-
-
-
-

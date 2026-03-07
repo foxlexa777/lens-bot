@@ -94,6 +94,8 @@
         .icon-glasses  { background: rgba(255,159,10,0.15); }
         .icon-stock    { background: rgba(52,199,89,0.12); }
         .icon-solution { background: rgba(10,132,255,0.12); }
+        .icon-notif    { background: rgba(255,159,10,0.12); }
+        .icon-auto     { background: rgba(191,90,242,0.12); }
 
         /* ── Скелетоны ── */
         @keyframes shimmer {
@@ -266,7 +268,25 @@
                      desc: dateStr ? 'Открыт ' + dateStr : '' };
         }
 
-        return { icon: '•', cls: '', title: t, desc: '' };
+        // ── Уведомления от бота ──
+        if (t === 'notif_remove_12h')
+            return { icon: '⏰', cls: 'icon-notif', title: 'Напоминание: снять линзы',
+                     desc: 'Прошло 12 часов' };
+        if (t === 'notif_replace')
+            return { icon: '⏰', cls: 'icon-notif', title: 'Напоминание: замена линз',
+                     desc: 'Срок подходит к концу' };
+        if (t === 'notif_stock_low')
+            return { icon: '⏰', cls: 'icon-notif', title: 'Напоминание: запас на исходе',
+                     desc: 'Рекомендовано заказать линзы' };
+        if (t === 'notif_solution_low')
+            return { icon: '⏰', cls: 'icon-notif', title: 'Напоминание: раствор заканчивается',
+                     desc: 'Менее 7 дней до окончания срока' };
+        if (t === 'notif_smart_wear')
+            return { icon: '🤖', cls: 'icon-auto', title: 'Умный ассистент',
+                     desc: 'Линзы отмечены автоматически' };
+
+        // Неизвестный тип — скрываем
+        return null;
     }
 
     // ── Тост ──
@@ -342,6 +362,7 @@
 
             for (const evt of groups[key]) {
                 const cfg      = eventConfig(evt);
+                if (!cfg) continue;  // скрываем неизвестные типы
                 const undoable = canUndo(evt);
                 const item     = document.createElement('div');
                 item.className = 'history-item';
@@ -397,4 +418,3 @@
 </script>
 </body>
 </html>
-

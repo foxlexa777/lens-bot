@@ -207,6 +207,15 @@
         return d + ' ' + MONTHS_FULL[m-1] + (y !== today.getFullYear() ? ' ' + y : '');
     }
 
+    // Типы которые можно отменять (не старше 24ч)
+    const UNDO_TYPES = new Set(['worn', 'replaced_both', 'replaced_left', 'replaced_right', 'solution_reset']);
+
+    function canUndo(evt) {
+        if (!UNDO_TYPES.has(evt.event_type)) return false;
+        const age = (Date.now() - parseUTC(evt.event_time).getTime()) / 3600000;
+        return age <= 24;
+    }
+
     // ── Конфигурация типов событий ──
     function eventConfig(evt) {
         const t = evt.event_type;
@@ -214,29 +223,29 @@
 
         if (t === 'worn')
             return { icon: '👁', cls: 'icon-worn', title: 'Надел линзы',
-                     desc: 'Напоминание снять через 12 часов', canUndo: true };
+                     desc: 'Напоминание снять через 12 часов' };
 
         if (t === 'removed') {
             return { icon: '🌙', cls: 'icon-removed', title: 'Снял линзы',
-                     desc: evt.notes || '', canUndo: false };
+                     desc: evt.notes || '' };
         }
 
         if (t === 'glasses') {
             const on = evt.notes === 'True';
             return { icon: '👓', cls: 'icon-glasses',
                      title: on ? 'Сегодня в очках' : 'Вернулся в линзы',
-                     desc: '', canUndo: false };
+                     desc: '' };
         }
 
         if (t === 'replaced_both')
             return { icon: '🔄', cls: 'icon-replaced', title: 'Замена — обе линзы',
-                     desc: '', canUndo: true };
+                     desc: '' };
         if (t === 'replaced_left')
             return { icon: '🔄', cls: 'icon-replaced', title: 'Замена — левая линза',
-                     desc: '', canUndo: true };
+                     desc: '' };
         if (t === 'replaced_right')
             return { icon: '🔄', cls: 'icon-replaced', title: 'Замена — правая линза',
-                     desc: '', canUndo: true };
+                     desc: '' };
 
         if (t === 'stock') {
             const eyeLabel = evt.eye === 'left' ? 'Левый (OS)' : 'Правый (OD)';
@@ -244,7 +253,7 @@
             const sign     = delta > 0 ? '+' : '';
             return { icon: '📦', cls: 'icon-stock',
                      title: `Запас ${sign}${delta} шт`,
-                     desc: eyeLabel, canUndo: false };
+                     desc: eyeLabel };
         }
 
         if (t === 'solution_reset') {
@@ -254,11 +263,10 @@
             const dateStr = (d && m) ? `${d} ${months[m]}` : '';
             return { icon: '💧', cls: 'icon-solution',
                      title: 'Новый флакон раствора',
-                     desc: dateStr ? 'Открыт ' + dateStr : '',
-                     canUndo: true };
+                     desc: dateStr ? 'Открыт ' + dateStr : '' };
         }
 
-        return { icon: '•', cls: '', title: t, desc: '', canUndo: false };
+        return { icon: '•', cls: '', title: t, desc: '' };
     }
 
     // ── Тост ──
@@ -299,6 +307,22 @@
             return;
         }
 
+        // Считаем время ношения: для каждого removed ищем предыдущий worn
+        const wornMap = {}; // event_id worn → длительность строкой
+        // Сортируем по времени (события уже отсортированы новые первые)
+        const sorted = [...events].sort((a,b) => a.event_time.localeCompare(b.event_time));
+        let lastWorn = null;
+        for (const e of sorted) {
+            if (e.event_type === 'worn') { lastWorn = e; }
+            if (e.event_type === 'removed' && lastWorn) {
+                const ms  = parseUTC(e.event_time) - parseUTC(lastWorn.event_time);
+                const h   = Math.floor(ms / 3600000);
+                const m   = Math.floor((ms % 3600000) / 60000);
+                wornMap[lastWorn.id] = h > 0 ? `${h} ч ${m} мин` : `${m} мин`;
+                lastWorn = null;
+            }
+        }
+
         // Группируем по дате (локальной)
         const groups = {};
         const order  = [];
@@ -317,22 +341,31 @@
             content.appendChild(div);
 
             for (const evt of groups[key]) {
-                const cfg  = eventConfig(evt);
-                const item = document.createElement('div');
+                const cfg      = eventConfig(evt);
+                const undoable = canUndo(evt);
+                const item     = document.createElement('div');
                 item.className = 'history-item';
                 item.dataset.id = evt.id;
+
+                // Для worn: если есть время ношения — показываем, иначе стандартное desc
+                let desc = cfg.desc;
+                if (evt.event_type === 'worn' && wornMap[evt.id]) {
+                    desc = 'Носил ' + wornMap[evt.id];
+                } else if (evt.event_type === 'worn' && !wornMap[evt.id]) {
+                    desc = 'Ещё не снял';
+                }
 
                 item.innerHTML = `
                     <div class="evt-time">${formatTime(evt._dt)}</div>
                     <div class="evt-icon ${cfg.cls}">${cfg.icon}</div>
                     <div class="evt-info">
                         <div class="evt-title">${cfg.title}</div>
-                        ${cfg.desc ? `<div class="evt-desc">${cfg.desc}</div>` : ''}
+                        ${desc ? `<div class="evt-desc">${desc}</div>` : ''}
                     </div>
-                    ${cfg.canUndo ? `<button class="undo-btn" data-id="${evt.id}">Отмена</button>` : ''}
+                    ${undoable ? `<button class="undo-btn" data-id="${evt.id}">Отмена</button>` : ''}
                 `;
 
-                if (cfg.canUndo) {
+                if (undoable) {
                     item.querySelector('.undo-btn').onclick = () => undoEvent(evt.id, item);
                 }
 
@@ -364,4 +397,3 @@
 </script>
 </body>
 </html>
-

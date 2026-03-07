@@ -648,8 +648,8 @@
                 const d = await resp.json();
                 removeSkeletons();
 
-                // TEMP: закомментируй чтобы вернуть обратно
-                (true) { removeSkeletons(); document.getElementById('main-content').style.display = 'none'; document.querySelector('.header').style.display = 'none'; document.getElementById('onboard').style.display = 'flex'; return; }
+                // TEMP ДЛЯ ТЕСТА: раскомментируй строку ниже чтобы увидеть онбординг
+                if (true) { removeSkeletons(); document.getElementById('main-content').style.display='none'; document.querySelector('.header').style.display='none'; document.getElementById('onboard').style.display='flex'; return; }
                 if (d.status !== 'ok') {
                     document.getElementById('main-content').style.display = 'none';
                     document.querySelector('.header').style.display = 'none';

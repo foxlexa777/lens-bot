@@ -649,6 +649,13 @@
             } catch (e) {
                 console.error('loadData:', e);
                 removeSkeletons();
+                // Офлайн-баннер
+                const banner = document.createElement('div');
+                banner.style.cssText = 'background:#2c2c2e;border-radius:12px;padding:10px 14px;' +
+                    'margin-bottom:12px;font-size:12px;color:#ff9f0a;display:flex;' +
+                    'align-items:center;gap:8px;';
+                banner.innerHTML = '<span>⚠️</span><span>Нет соединения с сервером. Данные могут быть устаревшими.</span>';
+                document.querySelector('.rings-grid').before(banner);
             }
         }
 
@@ -656,4 +663,3 @@
     </script>
 </body>
 </html>
-

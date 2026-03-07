@@ -152,35 +152,7 @@
         #save-status.error { background: rgba(255, 69, 58, 0.15); color: #ff453a; }
         #save-status.loading { background: rgba(0, 122, 255, 0.1); color: #007aff; }
 
-        /* ===== СКЕЛЕТОНЫ ===== */
-        @keyframes shimmer {
-            0%   { background-position: -400px 0; }
-            100% { background-position:  400px 0; }
-        }
-        .skeleton {
-            background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%);
-            background-size: 400px 100%;
-            animation: shimmer 1.4s infinite;
-            border-radius: 8px;
-            color: transparent !important;
-            pointer-events: none;
-            user-select: none;
-        }
-        .skeleton * { visibility: hidden; }
-        .skeleton-input {
-            height: 44px;
-            border-radius: 10px;
-            margin-bottom: 4px;
-        }
-        .skeleton-toggle {
-            width: 50px; height: 28px;
-            border-radius: 34px;
-            flex-shrink: 0;
-        }
-        /* прячем реальные inputs пока грузим */
-        .loading-data input {
-            visibility: hidden;
-        }
+        /* скелетоны убраны */
 
         .save-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -216,7 +188,7 @@
     <div id="save-status"></div>
 
     <span class="section-label">Ваши линзы</span>
-    <div class="card loading-data">
+    <div class="card">
         <div class="input-group">
             <span class="field-label">Бренд и модель</span>
             <div class="custom-select" id="brand-custom-select">
@@ -305,7 +277,7 @@
     </div>
 
     <span class="section-label">Параметры зрения</span>
-    <div class="card loading-data" id="vision-card">
+    <div class="card" id="vision-card">
         
         <div class="mode-row" style="margin-bottom: 15px;">
             <div>
@@ -367,7 +339,7 @@
 
 
     <span class="section-label">Замена и покупки</span>
-    <div class="card loading-data">
+    <div class="card">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Замена текущей пары</div>
         <div class="eye-row">
             <div class="input-group">
@@ -390,7 +362,7 @@
     </div>
 
     <span class="section-label">Ежедневный контроль</span>
-    <div class="card loading-data">
+    <div class="card">
         <div class="mode-row" style="align-items: center; padding: 0;">
             <div class="schedule-info" style="flex: 1;">
                 <div class="schedule-text-block">
@@ -485,48 +457,10 @@
 
         // ===== СКЕЛЕТОНЫ И ЗАГРУЗКА ДАННЫХ =====
 
-        function showSkeletons() {
-            // Скелетон для кастомного триггера бренда
-            const brandTrigger = document.getElementById('brand-trigger');
-            if (brandTrigger) {
-                const sk = document.createElement('div');
-                sk.className = 'skeleton skeleton-input';
-                brandTrigger.parentNode.insertBefore(sk, brandTrigger);
-                brandTrigger.style.opacity = '0';
-            }
-            // Добавляем скелетон-заглушки поверх каждого input
-            document.querySelectorAll('.loading-data input').forEach(el => {
-                if (el.closest('.astigmatism-field')) return;
-                if (el.type === 'checkbox') return;
-                const sk = document.createElement('div');
-                sk.className = 'skeleton skeleton-input';
-                sk.dataset.skeletonFor = el.id || Math.random();
-                el.parentNode.insertBefore(sk, el);
-                el.style.marginTop = '-48px';
-                el.style.opacity = '0';
-            });
-            // Скелетоны для тогглов
-            document.querySelectorAll('.loading-data .switch').forEach(sw => {
-                sw.style.visibility = 'hidden';
-                const sk = document.createElement('div');
-                sk.className = 'skeleton skeleton-toggle';
-                sk.style.display = 'inline-block';
-                sw.parentNode.insertBefore(sk, sw);
-            });
-        }
+        function showSkeletons() { /* убрано */ }
 
         function hideSkeletons() {
-            document.querySelectorAll('.skeleton').forEach(sk => sk.remove());
-            // Восстанавливаем триггер бренда
-            const brandTrigger = document.getElementById('brand-trigger');
-            if (brandTrigger) brandTrigger.style.opacity = '';
-            document.querySelectorAll('.loading-data input').forEach(el => {
-                el.style.marginTop = '';
-                el.style.opacity = '';
-            });
-            document.querySelectorAll('.loading-data .switch').forEach(sw => {
-                sw.style.visibility = '';
-            });
+            // Убираем класс loading-data чтобы показать поля
             document.querySelectorAll('.loading-data').forEach(el => {
                 el.classList.remove('loading-data');
             });

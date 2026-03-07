@@ -221,6 +221,7 @@
         </div>
     </div>
 
+    <div id="main-content">
     <span class="brand-sub" id="brand-sub">
         <span class="sk-line" style="width:160px;height:13px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
     </span>
@@ -326,6 +327,8 @@
         <div class="tip-dot"></div>
         <div class="tip-text" id="tip-text">…</div>
     </div>
+
+    </div><!-- /#main-content -->
 
     <!-- Кастомный confirm -->
     <div class="modal-overlay" id="modal">
@@ -631,7 +634,13 @@
 
         // ── Загрузка ──
         async function loadData() {
-            if (!uid) { removeSkeletons(); document.getElementById('onboard').style.display = 'flex'; return; }
+            if (!uid) {
+                removeSkeletons();
+                document.getElementById('main-content').style.display = 'none';
+                document.querySelector('.header').style.display = 'none';
+                document.getElementById('onboard').style.display = 'flex';
+                return;
+            }
             try {
                 const resp = await fetch(`${API_URL}/api/get_settings/${uid}`, {
                     headers: { 'bypass-tunnel-reminder': 'true' }
@@ -639,9 +648,14 @@
                 const d = await resp.json();
                 removeSkeletons();
 
-                // TEMP: раскомментируй чтобы увидеть онбординг
-                if (true) { removeSkeletons(); document.getElementById('onboard').style.display = 'flex'; return; }
-                if (d.status !== 'ok') { document.getElementById('onboard').style.display = 'flex'; return; }
+                // TEMP: закомментируй чтобы вернуть обратно
+                (true) { removeSkeletons(); document.getElementById('main-content').style.display = 'none'; document.querySelector('.header').style.display = 'none'; document.getElementById('onboard').style.display = 'flex'; return; }
+                if (d.status !== 'ok') {
+                    document.getElementById('main-content').style.display = 'none';
+                    document.querySelector('.header').style.display = 'none';
+                    document.getElementById('onboard').style.display = 'flex';
+                    return;
+                }
 
                 duration  = d.left?.duration ?? d.right?.duration ?? 14;
                 threshold = d.stock_threshold ?? 2;

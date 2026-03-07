@@ -3,116 +3,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>История</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg-color: #000;
-            --card-bg: #1c1c1e;
-            --text: #fff;
-            --hint: #8e8e93;
-            --blue: #0A84FF;
+            --bg:     #000000;
+            --card:   #1c1c1e;
+            --text:   #ffffff;
+            --hint:   #8e8e93;
+            --blue:   #0A84FF;
+            --green:  #34C759;
+            --orange: #FF9F0A;
+            --red:    #FF453A;
             --border: #2c2c2e;
         }
-        body { background: var(--bg-color); color: var(--text); font-family: -apple-system, sans-serif; padding: 16px; margin: 0; }
-        
-        /* Разделитель даты */
+
+        * { box-sizing: border-box; }
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: -apple-system, system-ui, sans-serif;
+            padding: 0; margin: 0;
+            -webkit-user-select: none;
+        }
+
+        /* ── Шапка ── */
+        .header {
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 12px 16px 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+        .header h1 { font-size: 20px; margin: 0; }
+        .nav-btn {
+            background: var(--card); border: none; border-radius: 10px;
+            width: 34px; height: 34px; display: flex; align-items: center;
+            justify-content: center; font-size: 16px; color: white; cursor: pointer;
+        }
+
+        /* ── Контент ── */
+        .content { padding: 8px 16px 32px; }
+
+        /* ── Разделитель даты ── */
         .date-divider {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--hint);
-            margin: 24px 0 12px 4px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 11px; font-weight: 700; color: var(--hint);
+            margin: 20px 0 8px 2px;
+            display: flex; align-items: center; gap: 10px;
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
         .date-divider::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: var(--border);
+            content: ""; flex: 1; height: 1px; background: var(--border);
         }
+        .date-divider:first-child { margin-top: 8px; }
 
-        .history-item { 
-            background: var(--card-bg); 
-            border-radius: 16px; 
-            padding: 12px; 
-            margin-bottom: 8px; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px;
+        /* ── Элемент истории ── */
+        .history-item {
+            background: var(--card); border-radius: 16px;
+            padding: 11px 12px; margin-bottom: 6px;
+            display: flex; align-items: center; gap: 10px;
+            transition: opacity 0.3s;
         }
-        
-        .time { 
-            font-size: 11px; 
-            color: var(--hint); 
-            min-width: 40px; 
-            text-align: right;
-            font-variant-numeric: tabular-nums;
-        }
-        
-        .icon { 
-            font-size: 18px; 
-            width: 36px; height: 36px; 
-            background: rgba(255,255,255,0.05); 
-            border-radius: 10px; 
-            display: flex; align-items: center; justify-content: center; 
-        }
+        .history-item.removing { opacity: 0; transform: translateX(40px); transition: 0.3s; }
 
-        .info { flex: 1; }
-        .title { font-size: 14px; font-weight: 600; }
-        .desc { font-size: 12px; color: var(--hint); margin-top: 1px; }
-        
-        /* Кнопка отмены (маленькая и незаметная) */
+        .evt-time {
+            font-size: 11px; color: var(--hint);
+            min-width: 38px; text-align: right;
+            font-variant-numeric: tabular-nums; flex-shrink: 0;
+        }
+        .evt-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 17px; flex-shrink: 0;
+        }
+        .evt-info { flex: 1; min-width: 0; }
+        .evt-title { font-size: 14px; font-weight: 600; }
+        .evt-desc  { font-size: 12px; color: var(--hint); margin-top: 2px; }
         .undo-btn {
-            background: none; border: none; color: #ff453a; font-size: 11px; padding: 4px; opacity: 0.6;
+            background: none; border: none; color: var(--red);
+            font-size: 11px; padding: 4px 2px; opacity: 0.55;
+            cursor: pointer; flex-shrink: 0; white-space: nowrap;
         }
+        .undo-btn:active { opacity: 1; }
+
+        /* Цвета иконок по типу */
+        .icon-worn     { background: rgba(10,132,255,0.15); }
+        .icon-removed  { background: rgba(142,142,147,0.15); }
+        .icon-replaced { background: rgba(52,199,89,0.15); }
+        .icon-glasses  { background: rgba(255,159,10,0.15); }
+        .icon-stock    { background: rgba(52,199,89,0.12); }
+        .icon-solution { background: rgba(10,132,255,0.12); }
+
+        /* ── Скелетоны ── */
+        @keyframes shimmer {
+            0%   { background-position: -400px 0; }
+            100% { background-position:  400px 0; }
+        }
+        .sk {
+            background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%);
+            background-size: 400px 100%; animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+        }
+        .sk-item {
+            height: 58px; border-radius: 16px; margin-bottom: 6px;
+        }
+
+        /* ── Пустое состояние ── */
+        .empty {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; min-height: 60vh; text-align: center; padding: 32px;
+        }
+        .empty-icon  { font-size: 52px; margin-bottom: 16px; opacity: 0.4; }
+        .empty-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+        .empty-sub   { font-size: 14px; color: var(--hint); line-height: 1.5; }
+
+        /* ── Тост уведомление ── */
+        .toast {
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+            background: var(--card); border: 1px solid var(--border);
+            color: var(--text); font-size: 13px; font-weight: 500;
+            padding: 10px 18px; border-radius: 20px;
+            transition: transform 0.3s cubic-bezier(.23,1,.32,1);
+            z-index: 100; white-space: nowrap; pointer-events: none;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
-    <h2 style="margin-left: 4px;">История</h2>
 
-    <div class="date-divider">СЕГОДНЯ, 5 МАРТА</div>
-    
-    <div class="history-item">
-        <div class="time">09:15</div>
-        <div class="icon">👁️</div>
-        <div class="info">
-            <div class="title">Надел линзы</div>
-            <div class="desc">Уведомление в 22:00</div>
-        </div>
-        <button class="undo-btn">Отмена</button>
-    </div>
+<div class="header">
+    <h1>История</h1>
+    <button class="nav-btn" id="btn-home">🏠</button>
+</div>
 
-    <div class="date-divider">ВЧЕРА, 4 МАРТА</div>
+<div class="content" id="content">
+    <!-- Скелетоны при загрузке -->
+    <div class="sk sk-item"></div>
+    <div class="sk sk-item"></div>
+    <div class="sk sk-item"></div>
+    <div class="sk sk-item"></div>
+    <div class="sk sk-item"></div>
+</div>
 
-    <div class="history-item">
-        <div class="time">22:30</div>
-        <div class="icon">👓</div>
-        <div class="info">
-            <div class="title">Снял линзы</div>
-            <div class="desc">Носил 13ч 15мин</div>
-        </div>
-    </div>
+<div class="toast" id="toast">Событие удалено</div>
 
-    <div class="history-item">
-        <div class="time">10:00</div>
-        <div class="icon">🔄</div>
-        <div class="info">
-            <div class="title">Замена (Обе)</div>
-            <div class="desc">Осталось 14 дней</div>
-        </div>
-        <button class="undo-btn">Отмена</button>
-    </div>
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-    <div class="date-divider">2 МАРТА</div>
+    const API_URL  = "https://lemon-roses-count.loca.lt";
+    const URL_BASE = "https://foxlexa777.github.io/lens-bot/";
 
-    <div class="history-item">
-        <div class="time">14:20</div>
-        <div class="icon">📦</div>
-        <div class="info">
-            <div class="title">Склад +6 шт</div>
-            <div class="desc">Правый глаз (OD)</div>
-        </div>
-    </div>
+    // ── user_id ──
+    function getUserId() {
+        const u1 = tg.initDataUnsafe?.user?.id;
+        if (u1) return u1;
+        try {
+            const p = new URLSearchParams(tg.initData);
+            const u = p.get('user');
+            if (u) { const o = JSON.parse(decodeURIComponent(u)); if (o?.id) return o.id; }
+        } catch(e) {}
+        try {
+            const u3 = parseInt(new URLSearchParams(window.location.search).get('uid'));
+            if (u3 > 0) return u3;
+        } catch(e) {}
+        return 0;
+    }
+    const uid = getUserId();
 
+    document.getElementById('btn-home').onclick = () =>
+        window.location.href = `${URL_BASE}index.html?uid=${uid}`;
+
+    // ── Форматирование ──
+    const MONTHS_SHORT = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+    const MONTHS_FULL  = ['января','февраля','марта','апреля','мая','июня',
+                          'июля','августа','сентября','октября','ноября','декабря'];
+
+    function parseUTC(str) {
+        // event_time хранится как UTC ISO без Z
+        return new Date(str + 'Z');
+    }
+
+    function formatTime(dt) {
+        return String(dt.getHours()).padStart(2,'0') + ':' + String(dt.getMinutes()).padStart(2,'0');
+    }
+
+    function formatDateKey(dt) {
+        // Ключ для группировки: YYYY-MM-DD по локальному времени
+        return dt.getFullYear() + '-' +
+               String(dt.getMonth()+1).padStart(2,'0') + '-' +
+               String(dt.getDate()).padStart(2,'0');
+    }
+
+    function formatDateLabel(dateKey) {
+        const [y, m, d] = dateKey.split('-').map(Number);
+        const dt    = new Date(y, m-1, d);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const diff  = Math.round((today - dt) / 86400000);
+        if (diff === 0) return 'Сегодня, ' + d + ' ' + MONTHS_SHORT[m-1];
+        if (diff === 1) return 'Вчера, '   + d + ' ' + MONTHS_SHORT[m-1];
+        if (diff < 7)   return ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'][dt.getDay()] + ', ' + d + ' ' + MONTHS_SHORT[m-1];
+        return d + ' ' + MONTHS_FULL[m-1] + (y !== today.getFullYear() ? ' ' + y : '');
+    }
+
+    // ── Конфигурация типов событий ──
+    function eventConfig(evt) {
+        const t = evt.event_type;
+        const eye = evt.eye === 'left' ? 'левый' : evt.eye === 'right' ? 'правый' : null;
+
+        if (t === 'worn')
+            return { icon: '👁', cls: 'icon-worn', title: 'Надел линзы',
+                     desc: 'Напоминание снять через 12 часов', canUndo: true };
+
+        if (t === 'removed') {
+            return { icon: '🌙', cls: 'icon-removed', title: 'Снял линзы',
+                     desc: evt.notes || '', canUndo: false };
+        }
+
+        if (t === 'glasses') {
+            const on = evt.notes === 'True';
+            return { icon: '👓', cls: 'icon-glasses',
+                     title: on ? 'Сегодня в очках' : 'Вернулся в линзы',
+                     desc: '', canUndo: false };
+        }
+
+        if (t === 'replaced_both')
+            return { icon: '🔄', cls: 'icon-replaced', title: 'Замена — обе линзы',
+                     desc: '', canUndo: true };
+        if (t === 'replaced_left')
+            return { icon: '🔄', cls: 'icon-replaced', title: 'Замена — левая линза',
+                     desc: '', canUndo: true };
+        if (t === 'replaced_right')
+            return { icon: '🔄', cls: 'icon-replaced', title: 'Замена — правая линза',
+                     desc: '', canUndo: true };
+
+        if (t === 'stock') {
+            const eyeLabel = evt.eye === 'left' ? 'Левый (OS)' : 'Правый (OD)';
+            const delta    = parseInt(evt.notes || '0');
+            const sign     = delta > 0 ? '+' : '';
+            return { icon: '📦', cls: 'icon-stock',
+                     title: `Запас ${sign}${delta} шт`,
+                     desc: eyeLabel, canUndo: false };
+        }
+
+        return { icon: '•', cls: '', title: t, desc: '', canUndo: false };
+    }
+
+    // ── Тост ──
+    let toastTimer = null;
+    function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    // ── Удаление события ──
+    async function undoEvent(id, itemEl) {
+        itemEl.classList.add('removing');
+        setTimeout(() => itemEl.remove(), 300);
+        try {
+            await fetch(`${API_URL}/api/event/${id}`, {
+                method: 'DELETE',
+                headers: { 'bypass-tunnel-reminder': 'true' }
+            });
+        } catch(e) { console.error(e); }
+        showToast('Событие удалено');
+    }
+
+    // ── Рендер истории ──
+    function render(events) {
+        const content = document.getElementById('content');
+        content.innerHTML = '';
+
+        if (!events || events.length === 0) {
+            content.innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon">📋</div>
+                    <div class="empty-title">История пуста</div>
+                    <div class="empty-sub">Здесь появятся записи когда<br>вы начнёте пользоваться трекером</div>
+                </div>`;
+            return;
+        }
+
+        // Группируем по дате (локальной)
+        const groups = {};
+        const order  = [];
+        for (const evt of events) {
+            const dt  = parseUTC(evt.event_time);
+            const key = formatDateKey(dt);
+            if (!groups[key]) { groups[key] = []; order.push(key); }
+            groups[key].push({ ...evt, _dt: dt });
+        }
+
+        for (const key of order) {
+            // Разделитель
+            const div = document.createElement('div');
+            div.className = 'date-divider';
+            div.textContent = formatDateLabel(key);
+            content.appendChild(div);
+
+            for (const evt of groups[key]) {
+                const cfg  = eventConfig(evt);
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.dataset.id = evt.id;
+
+                item.innerHTML = `
+                    <div class="evt-time">${formatTime(evt._dt)}</div>
+                    <div class="evt-icon ${cfg.cls}">${cfg.icon}</div>
+                    <div class="evt-info">
+                        <div class="evt-title">${cfg.title}</div>
+                        ${cfg.desc ? `<div class="evt-desc">${cfg.desc}</div>` : ''}
+                    </div>
+                    ${cfg.canUndo ? `<button class="undo-btn" data-id="${evt.id}">Отмена</button>` : ''}
+                `;
+
+                if (cfg.canUndo) {
+                    item.querySelector('.undo-btn').onclick = () => undoEvent(evt.id, item);
+                }
+
+                content.appendChild(item);
+            }
+        }
+    }
+
+    // ── Загрузка ──
+    async function loadHistory() {
+        try {
+            const resp = await fetch(`${API_URL}/api/history/${uid}`, {
+                headers: { 'bypass-tunnel-reminder': 'true' }
+            });
+            const data = await resp.json();
+            render(data.events || []);
+        } catch(e) {
+            console.error(e);
+            document.getElementById('content').innerHTML = `
+                <div class="empty">
+                    <div class="empty-icon">⚠️</div>
+                    <div class="empty-title">Нет соединения</div>
+                    <div class="empty-sub">Проверьте подключение к серверу</div>
+                </div>`;
+        }
+    }
+
+    loadHistory();
+</script>
 </body>
 </html>

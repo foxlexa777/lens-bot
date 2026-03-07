@@ -247,6 +247,17 @@
                      desc: eyeLabel, canUndo: false };
         }
 
+        if (t === 'solution_reset') {
+            // notes содержит дату открытия YYYY-MM-DD
+            const [y, m, d] = (evt.notes || '').split('-').map(Number);
+            const months = ['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+            const dateStr = (d && m) ? `${d} ${months[m]}` : '';
+            return { icon: '💧', cls: 'icon-solution',
+                     title: 'Новый флакон раствора',
+                     desc: dateStr ? 'Открыт ' + dateStr : '',
+                     canUndo: true };
+        }
+
         return { icon: '•', cls: '', title: t, desc: '', canUndo: false };
     }
 

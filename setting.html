@@ -200,8 +200,9 @@
     <div class="card loading-data">
         <div class="input-group">
             <span class="field-label">Бренд и модель</span>
-            <div class="select-wrapper">
-                <select id="lens-brand">
+            <div class="custom-select" id="brand-custom-select">
+                <div class="custom-select-trigger placeholder" id="brand-trigger">— Выберите линзы —</div>
+                <select id="lens-brand" style="display:none">
                     <option value="" disabled selected>— Выберите линзы —</option>
                     <optgroup label="Acuvue (Johnson &amp; Johnson)">
                         <option value="Acuvue Oasys">Acuvue Oasys (2 нед.)</option>
@@ -240,6 +241,7 @@
                     </optgroup>
                     </select>
             </div>
+            <!-- Backdrop и dropdown рендерятся через JS -->
         </div>
 
         <div class="eye-row">
@@ -424,10 +426,14 @@
         </div>
     </div>
 
+    <div class="save-btn-wrap">
+        <button class="save-btn" id="save-btn-page">Сохранить настройки</button>
+    </div>
+
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
-        tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" }).show();
+        tg.MainButton.hide();  // используем кнопку внутри страницы
 
         // ⚠️ ЗАМЕНИ ЭТУ ССЫЛКУ на актуальную от localtunnel каждый раз при запуске!
         const API_URL = "https://heavy-schools-flash.loca.lt";
@@ -509,6 +515,92 @@
             document.getElementById('days-left-r').value = v;
         });
 
+
+        // ── Кастомный select для брендов ──
+        (function() {
+            const select   = document.getElementById('lens-brand');
+            const trigger  = document.getElementById('brand-trigger');
+            const wrapper  = document.getElementById('brand-custom-select');
+
+            // Создаём backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'custom-select-backdrop';
+            document.body.appendChild(backdrop);
+
+            // Создаём dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'custom-select-dropdown';
+
+            // Шапка дропдауна
+            const header = document.createElement('div');
+            header.className = 'custom-select-header';
+            header.innerHTML = '<span>Выберите линзы</span>';
+            const closeBtn = document.createElement('button');
+            closeBtn.className = 'custom-select-close';
+            closeBtn.textContent = 'Готово';
+            header.appendChild(closeBtn);
+            dropdown.appendChild(header);
+
+            // Группы и опции из нативного select
+            Array.from(select.children).forEach(child => {
+                if (child.tagName === 'OPTGROUP') {
+                    const label = document.createElement('div');
+                    label.className = 'custom-select-group-label';
+                    label.textContent = child.label;
+                    dropdown.appendChild(label);
+                    Array.from(child.children).forEach(opt => {
+                        const item = document.createElement('div');
+                        item.className = 'custom-select-option';
+                        item.textContent = opt.textContent;
+                        item.dataset.value = opt.value;
+                        item.onclick = () => selectOption(opt.value, opt.textContent, item);
+                        dropdown.appendChild(item);
+                    });
+                } else if (child.tagName === 'OPTION' && child.value) {
+                    const item = document.createElement('div');
+                    item.className = 'custom-select-option';
+                    item.textContent = child.textContent;
+                    item.dataset.value = child.value;
+                    item.onclick = () => selectOption(child.value, child.textContent, item);
+                    dropdown.appendChild(item);
+                }
+            });
+            document.body.appendChild(dropdown);
+
+            function open() {
+                dropdown.classList.add('open');
+                backdrop.classList.add('open');
+            }
+            function close() {
+                dropdown.classList.remove('open');
+                backdrop.classList.remove('open');
+            }
+            function selectOption(value, text, item) {
+                select.value = value;
+                trigger.textContent = text;
+                trigger.classList.remove('placeholder');
+                // Снимаем selected со всех
+                dropdown.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+                item.classList.add('selected');
+                close();
+            }
+
+            trigger.onclick = open;
+            closeBtn.onclick = close;
+            backdrop.onclick = close;
+
+            // Публичный метод для установки значения из loadSettings
+            window.setBrandValue = function(value) {
+                const item = dropdown.querySelector(`[data-value="${value}"]`);
+                if (item) {
+                    select.value = value;
+                    trigger.textContent = item.textContent;
+                    trigger.classList.remove('placeholder');
+                    item.classList.add('selected');
+                }
+            };
+        })();
+
         async function loadSettings() {
             const uid = getTelegramUserId();
             if (!uid) { hideSkeletons(); return; }
@@ -521,9 +613,8 @@
                 if (d.status !== 'ok') { hideSkeletons(); return; }
 
                 // Бренд
-                const brandEl = document.getElementById('lens-brand');
                 if (d.brand) {
-                    [...brandEl.options].forEach(o => { if (o.value === d.brand) o.selected = true; });
+                    window.setBrandValue(d.brand);
                 }
 
                 // Основные поля
@@ -640,7 +731,8 @@
         }
 
         // 🔥 ГЛАВНАЯ ФУНКЦИЯ — отправка на API вместо tg.sendData
-        tg.onEvent('mainButtonClicked', async function() {
+        // Кнопка сохранения внутри страницы
+        document.getElementById('save-btn-page').onclick = async function() {
             try {
                 const isAstig = document.getElementById('astigmatism-mode').checked;
 
@@ -685,7 +777,9 @@
                 };
 
                 // Показываем что идёт сохранение
-                tg.MainButton.setParams({ text: "СОХРАНЕНИЕ...", color: "#555" });
+                const saveBtn = document.getElementById('save-btn-page');
+                saveBtn.textContent = 'Сохранение...';
+                saveBtn.className = 'save-btn saving';
                 showStatus("⏳ Сохраняем настройки...", "loading");
 
                 const response = await fetch(`${API_URL}/api/save_settings`, {
@@ -701,7 +795,9 @@
 
                 if (result.status === "success") {
                     showStatus("✅ Настройки сохранены!", "success");
-                    tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" });
+                    saveBtn.textContent = 'Сохранено ✓';
+                    saveBtn.className = 'save-btn saved';
+                    setTimeout(() => { saveBtn.textContent = 'Сохранить настройки'; saveBtn.className = 'save-btn'; }, 2000);
                     // Окно НЕ закрывается — пользователь остаётся в Mini App!
                 } else {
                     throw new Error(result.message || "Неизвестная ошибка");
@@ -709,7 +805,8 @@
 
             } catch (e) {
                 showStatus("❌ Ошибка: " + e.message, "error");
-                tg.MainButton.setParams({ text: "СОХРАНИТЬ НАСТРОЙКИ", color: "#007aff" });
+                document.getElementById('save-btn-page').textContent = 'Сохранить настройки';
+                document.getElementById('save-btn-page').className = 'save-btn';
             }
         });
         // Навигация

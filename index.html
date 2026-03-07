@@ -597,20 +597,26 @@
                 updateStockDisplay();
 
                 // Раствор
+                const fillEl  = document.getElementById('sol-fill');
+                const labelEl = document.getElementById('sol-label');
+                const dateEl  = document.getElementById('sol-date');
                 if (d.solution) {
                     const sol = d.solution;
-                    // pct = сколько ОСТАЛОСЬ (полная шкала = свежий раствор)
                     const pct = Math.round((sol.days_left / sol.max_days) * 100);
                     const fillColor = pct > 50 ? 'var(--accent-blue)' : pct > 20 ? 'var(--accent-orange)' : 'var(--accent-red)';
-                    const fillEl = document.getElementById('sol-fill');
                     fillEl.style.background = fillColor;
                     setTimeout(() => { fillEl.style.width = pct + '%'; }, 100);
-                    document.getElementById('sol-label').textContent = `(${sol.days_left} дн. осталось)`;
-                    const dateEl = document.getElementById('sol-date');
-                    if (dateEl && sol.opened_date) {
-                        dateEl.textContent = 'Открыт: ' + (sol.opened_date_fmt || sol.opened_date);
+                    labelEl.textContent = `(${sol.days_left} дн. осталось)`;
+                    if (dateEl && sol.opened_date_fmt) {
+                        dateEl.textContent  = 'Открыт: ' + sol.opened_date_fmt;
                         dateEl.style.display = 'block';
                     }
+                } else {
+                    // Раствора нет (удалён или не заводился)
+                    fillEl.style.width      = '0%';
+                    fillEl.style.background = 'var(--accent-blue)';
+                    labelEl.textContent     = '(нет данных)';
+                    if (dateEl) dateEl.style.display = 'none';
                 }
 
                 // ── Восстанавливаем состояние "сегодня в очках" ──
@@ -650,4 +656,3 @@
     </script>
 </body>
 </html>
-

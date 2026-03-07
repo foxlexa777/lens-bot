@@ -31,7 +31,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: -apple-system, system-ui, sans-serif;
-            margin: 0; padding: 16px 16px 32px 16px;
+            margin: 0; padding: 16px 16px 100px 16px;
             -webkit-user-select: none;
         }
 
@@ -178,10 +178,29 @@
             flex-shrink: 0;
         }
         /* прячем реальные inputs пока грузим */
-        .loading-data input,
-        .loading-data select {
+        .loading-data input {
             visibility: hidden;
         }
+
+        .save-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            padding: 12px 16px 28px;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            z-index: 100;
+        }
+        .save-btn {
+            width: 100%; padding: 15px;
+            background: #0A84FF; color: white;
+            border: none; border-radius: 14px;
+            font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: opacity 0.15s, background 0.2s;
+        }
+        .save-btn:active { opacity: 0.8; }
+        .save-btn.saving { background: #555; }
+        .save-btn.saved  { background: #34C759; }
     </style>
 </head>
 <body>
@@ -426,7 +445,7 @@
         </div>
     </div>
 
-    <div class="save-btn-wrap">
+    <div class="save-bar">
         <button class="save-btn" id="save-btn-page">Сохранить настройки</button>
     </div>
 
@@ -467,14 +486,23 @@
         // ===== СКЕЛЕТОНЫ И ЗАГРУЗКА ДАННЫХ =====
 
         function showSkeletons() {
-            // Добавляем скелетон-заглушки поверх каждого input/select
-            document.querySelectorAll('.loading-data input, .loading-data select').forEach(el => {
-                if (el.closest('.astigmatism-field')) return; // скрытые поля пропускаем
+            // Скелетон для кастомного триггера бренда
+            const brandTrigger = document.getElementById('brand-trigger');
+            if (brandTrigger) {
+                const sk = document.createElement('div');
+                sk.className = 'skeleton skeleton-input';
+                brandTrigger.parentNode.insertBefore(sk, brandTrigger);
+                brandTrigger.style.opacity = '0';
+            }
+            // Добавляем скелетон-заглушки поверх каждого input
+            document.querySelectorAll('.loading-data input').forEach(el => {
+                if (el.closest('.astigmatism-field')) return;
+                if (el.type === 'checkbox') return;
                 const sk = document.createElement('div');
                 sk.className = 'skeleton skeleton-input';
                 sk.dataset.skeletonFor = el.id || Math.random();
                 el.parentNode.insertBefore(sk, el);
-                el.style.marginTop = '-48px'; // перекрываем
+                el.style.marginTop = '-48px';
                 el.style.opacity = '0';
             });
             // Скелетоны для тогглов
@@ -489,7 +517,10 @@
 
         function hideSkeletons() {
             document.querySelectorAll('.skeleton').forEach(sk => sk.remove());
-            document.querySelectorAll('.loading-data input, .loading-data select').forEach(el => {
+            // Восстанавливаем триггер бренда
+            const brandTrigger = document.getElementById('brand-trigger');
+            if (brandTrigger) brandTrigger.style.opacity = '';
+            document.querySelectorAll('.loading-data input').forEach(el => {
                 el.style.marginTop = '';
                 el.style.opacity = '';
             });

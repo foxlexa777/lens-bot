@@ -152,7 +152,30 @@
         #save-status.error { background: rgba(255, 69, 58, 0.15); color: #ff453a; }
         #save-status.loading { background: rgba(0, 122, 255, 0.1); color: #007aff; }
 
-        /* скелетоны убраны */
+
+        @keyframes shimmer {
+            0%   { background-position: -400px 0; }
+            100% { background-position:  400px 0; }
+        }
+        .sk {
+            background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%);
+            background-size: 400px 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 10px;
+        }
+        .sk-line-lg  { height: 44px; margin-bottom: 12px; }
+        .sk-line-sm  { height: 44px; margin-bottom: 0; }
+        .sk-line-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .sk-line-row .sk { height: 44px; }
+        .sk-label    { height: 12px; width: 60%; margin-bottom: 8px; border-radius: 6px; }
+        .sk-block    { background: #1c1c1e; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .sk-toggle-row { display: flex; justify-content: space-between; align-items: center;
+                         background: rgba(44,44,46,0.5); border-radius: 12px; padding: 12px; margin-bottom: 12px; }
+        .sk-toggle-row .sk-text { flex:1; }
+        .sk-toggle-row .sk-text .sk { height: 14px; width: 50%; margin-bottom: 6px; }
+        .sk-toggle-row .sk-text .sk.sub { height: 10px; width: 70%; }
+        .sk-toggle { width: 50px; height: 28px; border-radius: 34px; flex-shrink: 0; }
+
 
         .save-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -187,8 +210,8 @@
     <!-- Статус сохранения -->
     <div id="save-status"></div>
 
-    <span class="section-label">Ваши линзы</span>
-    <div class="card">
+    <span class="section-label" id="sl-1">Ваши линзы</span>
+    <div class="card" id="card-lenses">
         <div class="input-group">
             <span class="field-label">Бренд и модель</span>
             <div class="select-wrapper">
@@ -274,7 +297,7 @@
         </div>
     </div>
 
-    <span class="section-label">Параметры зрения</span>
+    <span class="section-label" id="sl-2">Параметры зрения</span>
     <div class="card" id="vision-card">
         
         <div class="mode-row" style="margin-bottom: 15px;">
@@ -336,8 +359,8 @@
 
 
 
-    <span class="section-label">Замена и покупки</span>
-    <div class="card">
+    <span class="section-label" id="sl-3">Замена и покупки</span>
+    <div class="card" id="card-replace">
         <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Замена текущей пары</div>
         <div class="eye-row">
             <div class="input-group">
@@ -359,8 +382,8 @@
         </div>
     </div>
 
-    <span class="section-label">Ежедневный контроль</span>
-    <div class="card">
+    <span class="section-label" id="sl-4">Ежедневный контроль</span>
+    <div class="card" id="card-daily">
         <div class="mode-row" style="align-items: center; padding: 0;">
             <div class="schedule-info" style="flex: 1;">
                 <div class="schedule-text-block">
@@ -455,13 +478,79 @@
 
         // ===== СКЕЛЕТОНЫ И ЗАГРУЗКА ДАННЫХ =====
 
-        function showSkeletons() { /* убрано */ }
+        // ── Скелетоны ──
+        const REAL_CARDS = ['card-lenses','vision-card','card-replace','card-daily'];
+        const REAL_LABELS = ['sl-1','sl-2','sl-3','sl-4'];
+        let skeletonEls = [];
+
+        function makeSkelCard(html) {
+            const d = document.createElement('div');
+            d.className = 'sk-block';
+            d.innerHTML = html;
+            return d;
+        }
+
+        function showSkeletons() {
+            // Скрываем реальные карточки
+            REAL_CARDS.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+            REAL_LABELS.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+
+            const ref = document.getElementById('save-status');
+
+            // Карточка 1: линзы
+            const sk1 = makeSkelCard(`
+                <div class="sk sk-label"></div>
+                <div class="sk sk-line-lg"></div>
+                <div class="sk-line-row"><div class="sk"></div><div class="sk"></div></div>
+            `);
+            // Карточка 2: зрение
+            const sk2 = makeSkelCard(`
+                <div class="sk-toggle-row">
+                    <div class="sk-text"><div class="sk"></div><div class="sk sub"></div></div>
+                    <div class="sk sk-toggle"></div>
+                </div>
+                <div class="sk-toggle-row">
+                    <div class="sk-text"><div class="sk"></div><div class="sk sub"></div></div>
+                    <div class="sk sk-toggle"></div>
+                </div>
+                <div class="sk sk-label" style="margin-top:12px"></div>
+                <div class="sk-line-row"><div class="sk"></div><div class="sk"></div></div>
+                <div class="sk sk-label" style="margin-top:8px"></div>
+                <div class="sk-line-row"><div class="sk"></div><div class="sk"></div></div>
+            `);
+            // Карточка 3: замена
+            const sk3 = makeSkelCard(`
+                <div class="sk sk-label" style="width:40%;height:16px;margin-bottom:14px"></div>
+                <div class="sk-line-row"><div class="sk"></div><div class="sk"></div></div>
+                <div class="sk sk-line-lg" style="margin-top:8px"></div>
+            `);
+            // Карточка 4: расписание
+            const sk4 = makeSkelCard(`
+                <div class="sk-toggle-row">
+                    <div class="sk-text"><div class="sk"></div><div class="sk sub"></div></div>
+                    <div class="sk sk-toggle"></div>
+                </div>
+            `);
+
+            [sk1, sk2, sk3, sk4].forEach(sk => {
+                ref.after(sk);
+                skeletonEls.push(sk);
+                ref.after(document.createElement('span')); // spacer
+            });
+            // Вставляем в правильном порядке
+            skeletonEls = [sk1, sk2, sk3, sk4];
+            const anchor = document.getElementById('save-status');
+            anchor.insertAdjacentElement('afterend', sk4);
+            anchor.insertAdjacentElement('afterend', sk3);
+            anchor.insertAdjacentElement('afterend', sk2);
+            anchor.insertAdjacentElement('afterend', sk1);
+        }
 
         function hideSkeletons() {
-            // Убираем класс loading-data чтобы показать поля
-            document.querySelectorAll('.loading-data').forEach(el => {
-                el.classList.remove('loading-data');
-            });
+            skeletonEls.forEach(el => el.remove());
+            skeletonEls = [];
+            REAL_CARDS.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = ''; });
+            REAL_LABELS.forEach(id => { const el = document.getElementById(id); if(el) el.style.display = ''; });
         }
 
         // Раскрывашка разных дней

@@ -55,6 +55,10 @@
             color: #fff; font-size: 16px; box-sizing: border-box;
             outline: none; color-scheme: dark;
         }
+        select option {
+            background-color: #1c1c1e;
+            color: #fff;
+        }
 
         .mode-row {
             display: flex; justify-content: space-between; align-items: center;
@@ -184,8 +188,8 @@
  <div class="header">
         <h1>Настройка линз</h1>
         <div class="nav-icons">
-            <button class="nav-btn" id="btn-home" title="Главная">🏠</button>
             <button class="nav-btn" id="btn-history-s" title="История">🕒</button>
+            <button class="nav-btn" id="btn-home" title="Главная">🏠</button>
         </div>
     </div>
 
@@ -199,24 +203,42 @@
             <div class="select-wrapper">
                 <select id="lens-brand">
                     <option value="" disabled selected>— Выберите линзы —</option>
-                    <optgroup label="Acuvue (Johnson & Johnson)">
-                        <option value="Acuvue Oasys">Acuvue Oasys (2-week)</option>
+                    <optgroup label="Acuvue (Johnson &amp; Johnson)">
+                        <option value="Acuvue Oasys">Acuvue Oasys (2 нед.)</option>
                         <option value="Acuvue Oasys 1-Day">Acuvue Oasys 1-Day</option>
+                        <option value="Acuvue Oasys 1-Day for Astigmatism">Acuvue Oasys 1-Day Astigmatism</option>
+                        <option value="Acuvue Vita">Acuvue Vita (месяц)</option>
+                        <option value="1-Day Acuvue Moist">1-Day Acuvue Moist</option>
+                        <option value="1-Day Acuvue TruEye">1-Day Acuvue TruEye</option>
                     </optgroup>
-                    <optgroup label="Alcon">
+                    <optgroup label="Air Optix / Dailies (Alcon)">
                         <option value="Air Optix Plus HydraGlyde">Air Optix Plus HydraGlyde</option>
+                        <option value="Air Optix for Astigmatism">Air Optix for Astigmatism</option>
+                        <option value="Air Optix Aqua">Air Optix Aqua</option>
                         <option value="Dailies Total1">Dailies Total1</option>
+                        <option value="Dailies Total1 for Astigmatism">Dailies Total1 Astigmatism</option>
+                        <option value="Dailies AquaComfort Plus">Dailies AquaComfort Plus</option>
+                        <option value="FreshLook Colorblends">FreshLook Colorblends</option>
                     </optgroup>
                     <optgroup label="CooperVision">
-                        <option value="Biofinity">Biofinity</option>
-                        <option value="MyDay">MyDay daily disposable</option>
+                        <option value="Biofinity">Biofinity (месяц)</option>
+                        <option value="Biofinity Toric">Biofinity Toric</option>
+                        <option value="MyDay">MyDay (день)</option>
+                        <option value="MyDay Toric">MyDay Toric</option>
+                        <option value="Avaira Vitality">Avaira Vitality</option>
+                        <option value="Proclear 1 Day">Proclear 1 Day</option>
                     </optgroup>
                     <optgroup label="Bausch + Lomb">
-                        <option value="Bausch + Lomb ULTRA">Bausch + Lomb ULTRA</option>
+                        <option value="Bausch + Lomb ULTRA">ULTRA (месяц)</option>
+                        <option value="ULTRA for Astigmatism">ULTRA for Astigmatism</option>
                         <option value="Biotrue ONEday">Biotrue ONEday</option>
+                        <option value="PureVision 2">PureVision 2</option>
+                        <option value="SofLens Daily Disposable">SofLens Daily Disposable</option>
                     </optgroup>
-                    <option value="Другой бренд">Другой бренд...</option>
-                </select>
+                    <optgroup label="Другое">
+                        <option value="Другой бренд">Другой бренд...</option>
+                    </optgroup>
+                    </select>
             </div>
         </div>
 
@@ -247,11 +269,11 @@
         <div id="diff-days-panel" style="display:none;margin-top:8px">
             <div class="eye-row">
                 <div class="input-group">
-                    <span class="field-label">🔵 Левый — осталось дней</span>
+                    <span class="field-label">🔵 Левый<br>осталось дней</span>
                     <input type="number" id="days-left-l" value="14" min="0">
                 </div>
                 <div class="input-group">
-                    <span class="field-label">🔴 Правый — осталось дней</span>
+                    <span class="field-label">🔴 Правый<br>осталось дней</span>
                     <input type="number" id="days-left-r" value="14" min="0">
                 </div>
             </div>
@@ -700,4 +722,3 @@
     </script>
 </body>
 </html>
-

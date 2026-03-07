@@ -153,14 +153,62 @@
             color: transparent !important;
         }
 
-        /* ── ПУСТОЕ СОСТОЯНИЕ ── */
-        .empty-state {
-            display: none; flex-direction: column; align-items: center;
-            justify-content: center; min-height: 60vh; text-align: center; padding: 32px;
+        /* ── ОНБОРДИНГ ── */
+        .onboard {
+            display: none; flex-direction: column;
+            min-height: calc(100vh - 60px);
+            padding: 24px 20px 40px;
         }
-        .empty-icon  { font-size: 56px; margin-bottom: 16px; }
-        .empty-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-        .empty-sub   { font-size: 14px; color: var(--hint-color); line-height: 1.5; }
+        .onboard-hero {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; padding: 24px 0 32px;
+        }
+        .onboard-logo {
+            width: 80px; height: 80px; border-radius: 24px;
+            background: linear-gradient(135deg, #0A84FF 0%, #0055cc 100%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 38px; margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(10,132,255,0.35);
+        }
+        .onboard-title {
+            font-size: 26px; font-weight: 800;
+            letter-spacing: -0.5px; margin-bottom: 10px;
+        }
+        .onboard-sub {
+            font-size: 15px; color: var(--hint-color);
+            line-height: 1.55; max-width: 280px;
+        }
+        .onboard-features {
+            background: var(--card-bg); border-radius: 20px;
+            padding: 4px 0; margin-bottom: 24px;
+        }
+        .onboard-feature {
+            display: flex; align-items: center; gap: 14px;
+            padding: 13px 16px;
+        }
+        .onboard-feature + .onboard-feature {
+            border-top: 1px solid var(--border);
+        }
+        .feat-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; flex-shrink: 0;
+        }
+        .feat-icon.blue   { background: rgba(10,132,255,0.15); }
+        .feat-icon.green  { background: rgba(52,199,89,0.15); }
+        .feat-icon.orange { background: rgba(255,159,10,0.15); }
+        .feat-icon.purple { background: rgba(191,90,242,0.15); }
+        .feat-text b   { font-size: 14px; font-weight: 600; display: block; }
+        .feat-text span { font-size: 12px; color: var(--hint-color); }
+        .onboard-btn {
+            width: 100%; padding: 16px;
+            background: var(--accent-blue); color: white;
+            border: none; border-radius: 16px;
+            font-size: 16px; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.2px;
+        }
+        .onboard-btn:active { opacity: 0.85; }
     </style>
 </head>
 <body>
@@ -289,10 +337,45 @@
         </div>
     </div>
 
-    <div class="empty-state" id="empty-state">
-        <div class="empty-icon">👁‍🗨</div>
-        <div class="empty-title">Данные не найдены</div>
-        <div class="empty-sub">Настройте свои линзы через меню<br><b>⚙️ Настройки</b></div>
+    <div class="onboard" id="onboard">
+        <div class="onboard-hero">
+            <div class="onboard-logo">👁</div>
+            <div class="onboard-title">Lens Tracker</div>
+            <div class="onboard-sub">Следите за линзами,<br>запасом и раствором —<br>всё в одном месте</div>
+        </div>
+
+        <div class="onboard-features">
+            <div class="onboard-feature">
+                <div class="feat-icon blue">🔄</div>
+                <div class="feat-text">
+                    <b>Срок замены</b>
+                    <span>Кольца показывают сколько дней осталось</span>
+                </div>
+            </div>
+            <div class="onboard-feature">
+                <div class="feat-icon green">📦</div>
+                <div class="feat-text">
+                    <b>Запас линз</b>
+                    <span>Бот напомнит когда пора заказать</span>
+                </div>
+            </div>
+            <div class="onboard-feature">
+                <div class="feat-icon orange">⏰</div>
+                <div class="feat-text">
+                    <b>Напоминания</b>
+                    <span>Снять линзы через 12 часов и о замене</span>
+                </div>
+            </div>
+            <div class="onboard-feature">
+                <div class="feat-icon purple">💧</div>
+                <div class="feat-text">
+                    <b>Раствор</b>
+                    <span>Отслеживает срок открытого флакона</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="onboard-btn" id="onboard-btn">Настроить мои линзы →</button>
     </div>
 
     <script>
@@ -322,6 +405,9 @@
         // ── Навигация ──
         document.getElementById('btn-settings').onclick = () =>
             window.location.href = `${URL_BASE}setting.html?uid=${uid}`;
+        document.getElementById('onboard-btn').onclick = () =>
+            window.location.href = `${URL_BASE}setting.html?uid=${uid}`;
+
         document.getElementById('btn-history').onclick  = () =>
             window.location.href = `${URL_BASE}history.html?uid=${uid}`;
 
@@ -545,7 +631,7 @@
 
         // ── Загрузка ──
         async function loadData() {
-            if (!uid) { removeSkeletons(); document.getElementById('empty-state').style.display = 'flex'; return; }
+            if (!uid) { removeSkeletons(); document.getElementById('onboard').style.display = 'flex'; return; }
             try {
                 const resp = await fetch(`${API_URL}/api/get_settings/${uid}`, {
                     headers: { 'bypass-tunnel-reminder': 'true' }
@@ -553,7 +639,7 @@
                 const d = await resp.json();
                 removeSkeletons();
 
-                if (d.status !== 'ok') { document.getElementById('empty-state').style.display = 'flex'; return; }
+                if (d.status !== 'ok') { document.getElementById('onboard').style.display = 'flex'; return; }
 
                 duration  = d.left?.duration ?? d.right?.duration ?? 14;
                 threshold = d.stock_threshold ?? 2;

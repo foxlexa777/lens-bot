@@ -285,6 +285,9 @@
             return { icon: '🤖', cls: 'icon-auto', title: 'Умный ассистент',
                      desc: 'Линзы отмечены автоматически' };
 
+        if (t === 'notif_day_tick')
+            return null;  // системное событие — скрываем
+
         // Неизвестный тип — скрываем
         return null;
     }

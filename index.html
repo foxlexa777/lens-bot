@@ -631,8 +631,7 @@
 
         // ── Загрузка ──
         async function loadData() {
-            // TEMP: раскомментируй чтобы увидеть онбординг
-// if (true) { removeSkeletons(); document.getElementById('onboard').style.display = 'flex'; return; }
+            if (!uid) { removeSkeletons(); document.getElementById('onboard').style.display = 'flex'; return; }
             try {
                 const resp = await fetch(`${API_URL}/api/get_settings/${uid}`, {
                     headers: { 'bypass-tunnel-reminder': 'true' }
@@ -640,6 +639,8 @@
                 const d = await resp.json();
                 removeSkeletons();
 
+                // TEMP: раскомментируй чтобы увидеть онбординг
+                if (true) { removeSkeletons(); document.getElementById('onboard').style.display = 'flex'; return; }
                 if (d.status !== 'ok') { document.getElementById('onboard').style.display = 'flex'; return; }
 
                 duration  = d.left?.duration ?? d.right?.duration ?? 14;
@@ -750,4 +751,3 @@
     </script>
 </body>
 </html>
-

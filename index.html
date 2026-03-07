@@ -631,7 +631,8 @@
 
         // ── Загрузка ──
         async function loadData() {
-            if (!uid) { removeSkeletons(); document.getElementById('onboard').style.display = 'flex'; return; }
+            // TEMP: раскомментируй чтобы увидеть онбординг
+// if (true) { removeSkeletons(); document.getElementById('onboard').style.display = 'flex'; return; }
             try {
                 const resp = await fetch(`${API_URL}/api/get_settings/${uid}`, {
                     headers: { 'bypass-tunnel-reminder': 'true' }
@@ -749,3 +750,4 @@
     </script>
 </body>
 </html>
+

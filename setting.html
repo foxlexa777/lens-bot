@@ -573,7 +573,7 @@
 
             try {
                 const resp = await fetch(`${API_URL}/api/get_settings/${uid}`, {
-                    headers: { 'bypass-tunnel-reminder': 'true' }
+                    headers: { 'x-init-data': tg.initData || '' }
                 });
                 const d = await resp.json();
                 if (d.status !== 'ok') { hideSkeletons(); return; }
@@ -785,5 +785,3 @@
     </script>
 </body>
 </html>
-
-

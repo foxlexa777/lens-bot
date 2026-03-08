@@ -320,6 +320,7 @@
                 </div>
             </div>
         </div>
+        <a href="#" class="buy-link">🛒 Купить линзы</a>
     </div>
 
     <div class="tip-box" id="tip-box">
@@ -703,10 +704,14 @@
                 const dateEl  = document.getElementById('sol-date');
                 if (d.solution) {
                     const sol = d.solution;
-                    const pct = Math.round((sol.days_left / sol.max_days) * 100);
-                    const fillColor = pct > 50 ? 'var(--accent-blue)' : pct > 20 ? 'var(--accent-orange)' : 'var(--accent-red)';
+                    // Шкала показывает сколько ИЗРАСХОДОВАНО (чем больше дней — тем полнее)
+                    const usedPct = Math.round((sol.days_used / sol.max_days) * 100);
+                    const pct = usedPct;
+                    // Цвет по остатку: много осталось — синий, мало — красный
+                    const daysLeftPct = sol.days_left / sol.max_days;
+                    const fillColor = daysLeftPct > 0.5 ? 'var(--accent-blue)' : daysLeftPct > 0.2 ? 'var(--accent-orange)' : 'var(--accent-red)';
                     fillEl.style.background = fillColor;
-                    setTimeout(() => { fillEl.style.width = pct + '%'; }, 100);
+                    setTimeout(() => { fillEl.style.width = pct + '%'; fillEl.style.background = fillColor; }, 100);
                     labelEl.textContent = `(${sol.days_left} дн. осталось)`;
                     if (dateEl && sol.opened_date_fmt) {
                         dateEl.textContent  = 'Открыт: ' + sol.opened_date_fmt;
@@ -764,8 +769,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-

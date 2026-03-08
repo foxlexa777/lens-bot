@@ -416,7 +416,7 @@
 
         // ── API-хелпер (fire-and-forget) ──
         function api(path, method = 'POST', body = null) {
-            const opts = { method, headers: { 'bypass-tunnel-reminder': 'true', 'Content-Type': 'application/json' } };
+            const opts = { method, headers: { 'bypass-tunnel-reminder': 'true', 'Content-Type': 'application/json', 'x-init-data': tg.initData || '' } };
             if (body) opts.body = JSON.stringify(body);
             return fetch(`${API_URL}${path}`, opts).then(r => r.json()).catch(() => null);
         }
@@ -643,7 +643,7 @@
             }
             try {
                 const resp = await fetch(`${API_URL}/api/get_settings/${uid}`, {
-                    headers: { 'bypass-tunnel-reminder': 'true' }
+                    headers: { 'x-init-data': tg.initData || '' }
                 });
                 const d = await resp.json();
                 removeSkeletons();

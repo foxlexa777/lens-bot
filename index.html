@@ -294,7 +294,6 @@
             <button class="sol-btn" id="sol-reset">ОБНОВИЛ</button>
         </div>
         <div class="progress-bg"><div id="sol-fill" class="progress-fill"></div></div>
-        <div id="sol-debug" style="font-size:10px;color:#ff9f0a;margin-top:2px;"></div>
         <div id="sol-date" style="font-size:11px;color:var(--hint-color);margin-top:7px;display:none">Открыт: —</div>
         <div style="font-size:11px;color:var(--hint-color);margin-top:8px;line-height:1.5;border-top:1px solid var(--border);padding-top:8px;">
             Флакон безопасен <b style="color:var(--text-color)">не более 90 дней</b> после вскрытия. Нажмите «ОБНОВИЛ» при открытии нового.
@@ -712,18 +711,15 @@
                     const pct = Math.min(100, Math.round((daysUsed / maxDays) * 100));
                     const daysLeftPct = daysLeft / maxDays;
                     const fillColor = daysLeftPct > 0.5 ? 'var(--accent-blue)' : daysLeftPct > 0.2 ? 'var(--accent-orange)' : 'var(--accent-red)';
-                    // Временный дебаг — показываем данные прямо на странице
-                    const dbgEl = document.getElementById('sol-debug');
-                    if (dbgEl) dbgEl.textContent = `used:${daysUsed} left:${daysLeft} max:${maxDays} pct:${pct}%`;
-                    // Сначала без transition — ставим ширину мгновенно
+                    // Шкала показывает сколько ОСТАЛОСЬ (много осталось = полная)
+                    const leftPct = Math.min(100, Math.round((daysLeft / maxDays) * 100));
                     fillEl.style.transition = 'none';
                     fillEl.style.width = '0%';
                     fillEl.style.background = fillColor;
-                    // Затем включаем анимацию и задаём финальную ширину
                     requestAnimationFrame(() => {
                         requestAnimationFrame(() => {
                             fillEl.style.transition = 'width 0.8s cubic-bezier(.23,1,.32,1)';
-                            fillEl.style.width = pct + '%';
+                            fillEl.style.width = leftPct + '%';
                         });
                     });
                     labelEl.textContent = `(${daysLeft} дн. осталось)`;

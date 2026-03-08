@@ -711,7 +711,18 @@
                     const pct = Math.min(100, Math.round((daysUsed / maxDays) * 100));
                     const daysLeftPct = daysLeft / maxDays;
                     const fillColor = daysLeftPct > 0.5 ? 'var(--accent-blue)' : daysLeftPct > 0.2 ? 'var(--accent-orange)' : 'var(--accent-red)';
-                    setTimeout(() => { fillEl.style.width = pct + '%'; fillEl.style.background = fillColor; }, 100);
+                    console.log('SOL:', {daysUsed, daysLeft, maxDays, pct, fillColor});
+                    // Сначала без transition — ставим ширину мгновенно
+                    fillEl.style.transition = 'none';
+                    fillEl.style.width = '0%';
+                    fillEl.style.background = fillColor;
+                    // Затем включаем анимацию и задаём финальную ширину
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            fillEl.style.transition = 'width 0.8s cubic-bezier(.23,1,.32,1)';
+                            fillEl.style.width = pct + '%';
+                        });
+                    });
                     labelEl.textContent = `(${daysLeft} дн. осталось)`;
                     if (dateEl && sol.opened_date_fmt) {
                         dateEl.textContent  = 'Открыт: ' + sol.opened_date_fmt;

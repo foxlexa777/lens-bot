@@ -704,15 +704,15 @@
                 const dateEl  = document.getElementById('sol-date');
                 if (d.solution) {
                     const sol = d.solution;
-                    // Шкала показывает сколько ИЗРАСХОДОВАНО (чем больше дней — тем полнее)
-                    const usedPct = Math.round((sol.days_used / sol.max_days) * 100);
-                    const pct = usedPct;
-                    // Цвет по остатку: много осталось — синий, мало — красный
-                    const daysLeftPct = sol.days_left / sol.max_days;
+                    // Принудительно числа (Turso может вернуть строки)
+                    const daysUsed = parseInt(sol.days_used) || 0;
+                    const daysLeft = parseInt(sol.days_left) || 0;
+                    const maxDays  = parseInt(sol.max_days)  || 90;
+                    const pct = Math.min(100, Math.round((daysUsed / maxDays) * 100));
+                    const daysLeftPct = daysLeft / maxDays;
                     const fillColor = daysLeftPct > 0.5 ? 'var(--accent-blue)' : daysLeftPct > 0.2 ? 'var(--accent-orange)' : 'var(--accent-red)';
-                    fillEl.style.background = fillColor;
                     setTimeout(() => { fillEl.style.width = pct + '%'; fillEl.style.background = fillColor; }, 100);
-                    labelEl.textContent = `(${sol.days_left} дн. осталось)`;
+                    labelEl.textContent = `(${daysLeft} дн. осталось)`;
                     if (dateEl && sol.opened_date_fmt) {
                         dateEl.textContent  = 'Открыт: ' + sol.opened_date_fmt;
                         dateEl.style.display = 'block';

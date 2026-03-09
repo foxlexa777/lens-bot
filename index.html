@@ -281,9 +281,9 @@
     </div>
 
     <div id="action-area">
-        <button class="btn-main" id="wear-btn">👁️ НАДЕТЬ ЛИНЗЫ</button>
-        <span class="btn-note">Нажмите, чтобы получить напоминание снять линзы</span>
-        <div class="worn-timer" id="worn-timer">⏱ Надеты: 0:00</div>
+        <button class="btn-main" id="wear-btn">НАДЕТЬ ЛИНЗЫ</button>
+        <span class="btn-note" id="wear-note">Получите напоминание снять через 12 ч</span>
+        <div class="worn-timer" id="worn-timer"></div>
     </div>
 
     <button class="btn-glasses" id="gl-btn">👓 Сегодня я в очках</button>
@@ -499,14 +499,17 @@
         // ── Кнопка Надеть ──
         document.getElementById('wear-btn').onclick = function () {
             lensesWorn = !lensesWorn;
+            const note = document.getElementById('wear-note');
             if (lensesWorn) {
                 this.classList.add('active');
-                this.innerHTML = '✅ ЛИНЗЫ НАДЕТЫ';
+                this.textContent = 'СНЯТЬ ЛИНЗЫ';
+                note.textContent = 'Линзы надеты · напомним снять через 12 ч';
                 startTimer(Date.now());
                 api(`/api/wear/${uid}`);
             } else {
                 this.classList.remove('active');
-                this.innerHTML = '👁️ НАДЕТЬ ЛИНЗЫ';
+                this.textContent = 'НАДЕТЬ ЛИНЗЫ';
+                note.textContent = 'Получите напоминание снять через 12 ч';
                 stopTimer();
                 api(`/api/remove/${uid}`);
             }
@@ -525,7 +528,8 @@
                 lensesWorn = false;
                 const btn = document.getElementById('wear-btn');
                 btn.classList.remove('active');
-                btn.innerHTML = '👁️ НАДЕТЬ ЛИНЗЫ';
+                btn.textContent = 'НАДЕТЬ ЛИНЗЫ';
+                document.getElementById('wear-note').textContent = 'Получите напоминание снять через 12 ч';
                 stopTimer();
                 api(`/api/remove/${uid}`);  // записываем снятие в БД
             }
@@ -757,7 +761,8 @@
                         lensesWorn = true;
                         const btn = document.getElementById('wear-btn');
                         btn.classList.add('active');
-                        btn.innerHTML = '✅ ЛИНЗЫ НАДЕТЫ';
+                        btn.textContent = 'СНЯТЬ ЛИНЗЫ';
+                document.getElementById('wear-note').textContent = 'Линзы надеты · напомним снять через 12 ч';
                         startTimer(wornTime);
                     }
                 }

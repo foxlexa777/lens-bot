@@ -210,12 +210,33 @@
     }
 
     // Типы которые можно отменять (не старше 24ч)
-    const UNDO_TYPES = new Set(['worn', 'replaced_both', 'replaced_left', 'replaced_right', 'solution_reset']);
+    const UNDO_TYPES = new Set(['worn', 'removed', 'glasses', 'replaced_both', 'replaced_left', 'replaced_right', 'solution_reset']);
 
-    function canUndo(evt) {
+    // Группы для логики "только последнее"
+    // worn/removed — одна группа (надел/снял)
+    // replaced_* — по глазу
+    // solution_reset — своя группа
+    // glasses — своя группа
+    function undoGroup(eventType) {
+        if (eventType === 'worn' || eventType === 'removed') return 'wear';
+        if (eventType === 'replaced_left')  return 'replace_left';
+        if (eventType === 'replaced_right') return 'replace_right';
+        if (eventType === 'replaced_both')  return 'replace_both';
+        if (eventType === 'solution_reset') return 'solution';
+        if (eventType === 'glasses')        return 'glasses';
+        return eventType;
+    }
+
+    function canUndo(evt, allEvents) {
         if (!UNDO_TYPES.has(evt.event_type)) return false;
         const age = (Date.now() - parseUTC(evt.event_time).getTime()) / 3600000;
-        return age <= 24;
+        if (age > 24) return false;
+        // Только последнее событие в своей группе
+        const group = undoGroup(evt.event_type);
+        const lastInGroup = allEvents
+            .filter(e => undoGroup(e.event_type) === group)
+            .sort((a, b) => b.event_time.localeCompare(a.event_time))[0];
+        return lastInGroup && lastInGroup.id === evt.id;
     }
 
     // ── Конфигурация типов событий ──
@@ -372,7 +393,7 @@
             for (const evt of groups[key]) {
                 const cfg      = eventConfig(evt);
                 if (!cfg) continue;  // скрываем неизвестные типы
-                const undoable = canUndo(evt);
+                const undoable = canUndo(evt, events);
                 const item     = document.createElement('div');
                 item.className = 'history-item';
                 item.dataset.id = evt.id;

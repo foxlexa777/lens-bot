@@ -288,6 +288,12 @@
         if (t === 'notif_day_tick')
             return null;  // системное событие — скрываем
 
+        if (t === 'day_ticked') {
+            const eyeLabel = evt.eye === 'left' ? 'Левый (OS)' : 'Правый (OD)';
+            return { icon: '📅', cls: 'icon-removed', title: 'Списан день',
+                     desc: `${eyeLabel} — ${evt.notes || ''}` };
+        }
+
         // Неизвестный тип — скрываем
         return null;
     }

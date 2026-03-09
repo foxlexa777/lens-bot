@@ -38,17 +38,17 @@
 
         /* Кольца */
         .rings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .eye-card { background: var(--card-bg); border-radius: 20px; padding: 12px 14px 16px 14px; position: relative; transition: opacity 0.3s; }
+        .eye-card { background: var(--card-bg); border-radius: 20px; padding: 14px 14px; position: relative; transition: opacity 0.3s; }
         .eye-card.inactive { opacity: 0.25; }
 
         .eye-label { font-size: 9px; color: var(--hint-color); text-transform: uppercase; font-weight: 700; text-align: center; margin-bottom: 6px; letter-spacing: 1px; }
-        .eye-body { display: flex; align-items: center; justify-content: space-between; gap: 0; padding: 4px 0; }
+        .eye-body { display: flex; align-items: center; justify-content: space-between; gap: 0; }
 
-        .specs { display: flex; flex-direction: column; gap: 4px; flex: 1; justify-content: center; }
+        .specs { display: flex; flex-direction: column; gap: 5px; flex: 1; justify-content: center; align-self: center; }
         .specs div { font-size: 9px; color: var(--hint-color); }
         .specs b { color: #fff; font-size: 10px; }
 
-        .ring { position: relative; width: 84px; height: 84px; flex-shrink: 0; margin: auto 0 auto 12px; }
+        .ring { position: relative; width: 82px; height: 82px; flex-shrink: 0; align-self: center; }
         .ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
         .ring circle { fill: transparent; stroke-width: 8; stroke-linecap: round; }
         .ring .bg  { stroke: var(--border); }
